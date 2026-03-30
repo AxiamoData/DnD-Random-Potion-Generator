@@ -1,3 +1,32 @@
+// =====================
+// Supabase
+// =====================
+const SUPABASE_URL = 'https://snhowafpgqzpczonsugp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_6GWwgPEFBnSewjtnzsJqAQ_kOBOp-jx';
+let supabase;
+
+async function loadCustomTexts() {
+  try {
+    const { data, error } = await supabase.from('custom_texts').select('category, text');
+    if (error) return;
+    for (const { category, text } of data) {
+      if (POTION_DATA[category]) POTION_DATA[category].push(text);
+    }
+  } catch {
+    // sin conexión — seguimos con datos estáticos
+  }
+}
+
+async function submitCustomText(category, text) {
+  try {
+    const { error } = await supabase.from('custom_texts').insert({ category, text });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// =====================
 const QUALITY_META = {
   "Tosca -- 8d4 + 8.":    { pct: "10%",  label: "Tosca" },
   "Simple -- 6d4 + 6.":   { pct: "25%",  label: "Simple" },
@@ -201,7 +230,10 @@ function showSavePopup(idx, potion) {
   }, 2200);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  await loadCustomTexts();
+
   initSlots();
 
   document.getElementById("generate-btn").addEventListener("click", () => {
@@ -212,4 +244,41 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("save-btn").addEventListener("click", savePotion);
+
+  // Custom text form
+  document.getElementById("custom-text-toggle").addEventListener("click", () => {
+    const form = document.getElementById("custom-text-form");
+    const chevron = document.getElementById("custom-text-chevron");
+    const isHidden = form.hasAttribute("hidden");
+    form.toggleAttribute("hidden", !isHidden);
+    chevron.style.transform = isHidden ? "rotate(180deg)" : "";
+  });
+
+  document.getElementById("custom-text-submit").addEventListener("click", async () => {
+    const category = document.getElementById("custom-category").value;
+    const text = document.getElementById("custom-text-input").value.trim();
+    const feedback = document.getElementById("custom-text-feedback");
+    const submitBtn = document.getElementById("custom-text-submit");
+
+    if (!text) return;
+
+    submitBtn.disabled = true;
+    feedback.textContent = "Guardando...";
+    feedback.className = "font-label text-[11px] text-center text-on-surface-variant";
+
+    const ok = await submitCustomText(category, text);
+
+    if (ok) {
+      POTION_DATA[category].push(text);
+      document.getElementById("custom-text-input").value = "";
+      feedback.textContent = "¡Texto añadido! Aparecerá en futuras pociones.";
+      feedback.className = "font-label text-[11px] text-center text-primary";
+    } else {
+      feedback.textContent = "Error al guardar. Inténtalo de nuevo.";
+      feedback.className = "font-label text-[11px] text-center text-error";
+    }
+
+    submitBtn.disabled = false;
+    setTimeout(() => { feedback.textContent = ""; }, 3000);
+  });
 });
