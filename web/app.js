@@ -45,6 +45,28 @@ const POTENCY_RARITY = {
   "Suprema -- 10d4 + 20.": "Artefacto Legendario",
 };
 
+const MAX_CHARS = {
+  mainEffects:  100,
+  sideEffects:   50,
+  containers:    60,
+  labels:        90,
+  appearance:    20,
+  appearance2:   40,
+  tasteAndSmell: 40,
+  textures:      30,
+  potency:       30,
+  quality:       30,
+  duration:      20,
+  titles:        10,
+};
+
+function formatCustomText(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return trimmed;
+  const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  return capitalized.endsWith('.') ? capitalized : capitalized + '.';
+}
+
 function randomFrom(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
@@ -258,11 +280,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("custom-text-submit").addEventListener("click", async () => {
     const category = document.getElementById("custom-category").value;
-    const text = document.getElementById("custom-text-input").value.trim();
+    const rawText = document.getElementById("custom-text-input").value;
     const feedback = document.getElementById("custom-text-feedback");
     const submitBtn = document.getElementById("custom-text-submit");
 
-    if (!text) return;
+    if (!rawText.trim()) return;
+
+    const text = formatCustomText(rawText);
+    const maxLen = MAX_CHARS[category] ?? 100;
+
+    if (text.length > maxLen) {
+      feedback.textContent = `Texto demasiado largo. Máximo ${maxLen} caracteres (tienes ${text.length}).`;
+      feedback.className = "font-label text-[11px] text-center text-error";
+      setTimeout(() => { feedback.textContent = ""; }, 4000);
+      return;
+    }
 
     submitBtn.disabled = true;
     feedback.textContent = "Guardando...";
