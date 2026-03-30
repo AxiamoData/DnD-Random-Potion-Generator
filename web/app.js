@@ -291,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (text.length > maxLen) {
       feedback.textContent = `Texto demasiado largo. Máximo ${maxLen} caracteres (tienes ${text.length}).`;
-      feedback.className = "font-label text-[11px] text-center text-error";
+      feedback.className = "font-label text-sm text-center text-error";
       setTimeout(() => { feedback.textContent = ""; }, 4000);
       return;
     }
