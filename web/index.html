@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="description" content="Generador aleatorio de pociones para D&D 5e. Pulsa el botón y obtén una poción mágica única para tu campaña."/>
+<title>Minerva's Experiments — Generador de Pociones D&D</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#fbcb70"/>
+
+<!-- iOS PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Minerva"/>
+<link rel="apple-touch-icon" href="icon.svg"/>
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="icon.svg"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@400;500&family=Work+Sans:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "on-primary-fixed-variant": "#5d4200",
+          "tertiary": "#decafb",
+          "on-tertiary": "#382950",
+          "surface-variant": "#363245",
+          "inverse-surface": "#e6dff7",
+          "secondary-container": "#5e4204",
+          "surface-container-lowest": "#0f0c1c",
+          "on-secondary-fixed": "#271900",
+          "surface-container-high": "#2b2839",
+          "primary": "#fbcb70",
+          "error": "#ffb4ab",
+          "on-secondary-fixed-variant": "#5e4204",
+          "on-error-container": "#ffdad6",
+          "on-error": "#690005",
+          "on-surface-variant": "#d2c5b2",
+          "outline-variant": "#4e4637",
+          "primary-container": "#ddb058",
+          "on-tertiary-fixed": "#221439",
+          "surface-bright": "#3a3749",
+          "secondary-fixed-dim": "#eac079",
+          "on-tertiary-fixed-variant": "#4f3f68",
+          "on-primary": "#412d00",
+          "secondary-fixed": "#ffdea9",
+          "primary-fixed-dim": "#eec066",
+          "on-secondary": "#422c00",
+          "on-primary-fixed": "#271900",
+          "on-secondary-container": "#d7af6a",
+          "inverse-primary": "#7b5801",
+          "surface": "#141122",
+          "tertiary-fixed-dim": "#d2beee",
+          "surface-container-low": "#1c192a",
+          "surface-container-highest": "#363245",
+          "error-container": "#93000a",
+          "tertiary-container": "#c1aede",
+          "tertiary-fixed": "#ecdcff",
+          "background": "#141122",
+          "inverse-on-surface": "#312e40",
+          "outline": "#9b8f7e",
+          "secondary": "#eac079",
+          "surface-tint": "#eec066",
+          "primary-fixed": "#ffdea5",
+          "on-background": "#e6dff7",
+          "surface-container": "#201d2f",
+          "on-surface": "#e6dff7",
+          "on-tertiary-container": "#4f4069",
+          "surface-dim": "#141122",
+          "on-primary-container": "#5e4300"
+        },
+        fontFamily: {
+          "headline": ["Noto Serif", "serif"],
+          "body": ["Inter", "sans-serif"],
+          "label": ["Work Sans", "sans-serif"]
+        },
+        borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+      },
+    },
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .glass-artifact {
+    backdrop-filter: blur(12px);
+    background: rgba(43, 40, 57, 0.7);
+  }
+  .metallic-glow {
+    box-shadow: 0 0 15px rgba(251, 203, 112, 0.15);
+  }
+  body {
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  main {
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .appear { animation: fadeUp 0.35s ease both; }
+  .perfect-side { color: #7fffb2 !important; font-style: italic; }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary">
+
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 border-b border-outline-variant/20 bg-gradient-to-b from-surface-container-low to-surface shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
+  <div class="flex justify-center items-center w-full px-6 py-4 max-w-screen-xl mx-auto">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-primary text-2xl">science</span>
+      <h1 class="text-2xl font-headline font-bold text-primary drop-shadow-[0_2px_4px_rgba(251,203,112,0.3)] tracking-tight">Minerva's Experiments</h1>
+    </div>
+  </div>
+</header>
+
+<main class="min-h-screen max-w-lg mx-auto px-4 py-8 flex flex-col gap-10">
+
+  <!-- Hero Section & CTA -->
+  <section class="text-center space-y-8 mt-4">
+    <div class="flex items-center justify-center gap-3">
+      <div class="relative inline-block group">
+        <div class="absolute -inset-1 bg-gradient-to-r from-primary to-primary-container rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+        <button id="generate-btn" class="relative px-10 py-5 bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-xl rounded-lg shadow-xl active:scale-95 transition-all duration-150 metallic-glow">
+          Generar Poción
+        </button>
+      </div>
+      <button id="save-btn" disabled title="Guardar poción en ranura"
+        class="h-16 w-12 flex items-center justify-center rounded-lg border border-primary/30 text-primary hover:bg-surface-container-high active:scale-95 transition-all disabled:opacity-25 disabled:pointer-events-none">
+        <span class="material-symbols-outlined">bookmark_add</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Artifact Card: Potion Stats -->
+  <article id="potion-card" hidden class="surface-container-high rounded-xl overflow-hidden border border-outline-variant/15 glass-artifact shadow-2xl relative">
+
+    <!-- Decorative corner -->
+    <div class="absolute top-0 right-0 p-2 opacity-40">
+      <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+    </div>
+
+    <!-- Card Header -->
+    <div class="bg-surface-container-highest/50 px-6 py-6 border-b border-outline-variant/10">
+      <h2 id="potion-name" class="font-headline text-3xl text-primary tracking-tight"></h2>
+      <p id="potion-subtitle" class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant mt-1"></p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="p-6 space-y-8">
+
+      <!-- Primary Effects -->
+      <div class="grid grid-cols-1 gap-6">
+        <div class="space-y-2">
+          <label class="font-label text-[10px] uppercase tracking-widest text-primary font-semibold">Efecto Principal</label>
+          <p id="potion-main-effect" class="text-on-surface leading-relaxed text-lg"></p>
+        </div>
+        <div id="side-effect-row" class="space-y-2">
+          <label class="font-label text-[10px] uppercase tracking-widest text-error font-semibold">Efecto Secundario</label>
+          <p id="potion-side-effect" class="text-on-surface-variant text-sm italic"></p>
+        </div>
+      </div>
+
+      <!-- Bento Metadata -->
+      <div class="grid grid-cols-2 gap-x-8 gap-y-6 pt-4 border-t border-outline-variant/10">
+        <div class="flex flex-col gap-1">
+          <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Recipiente</span>
+          <span id="potion-container" class="text-on-surface font-medium"></span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Etiqueta</span>
+          <span id="potion-label" class="text-on-surface font-medium"></span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Apariencia</span>
+          <span id="potion-appearance" class="text-on-surface font-medium"></span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Textura</span>
+          <span id="potion-texture" class="text-on-surface font-medium"></span>
+        </div>
+      </div>
+
+      <!-- Sensory & Potency -->
+      <div class="bg-surface-container-lowest/40 rounded-lg p-4 grid grid-cols-2 gap-4">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary-container text-sm mt-0.5">air</span>
+          <div>
+            <span class="block font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Olor</span>
+            <span id="potion-smell" class="text-xs text-on-surface"></span>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary-container text-sm mt-0.5">restaurant</span>
+          <div>
+            <span class="block font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Sabor</span>
+            <span id="potion-taste" class="text-xs text-on-surface"></span>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary-container text-sm mt-0.5">bolt</span>
+          <div>
+            <span class="block font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Potencia</span>
+            <span id="potion-potency" class="text-xs text-on-surface"></span>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary-container text-sm mt-0.5">schedule</span>
+          <div>
+            <span class="block font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Duración</span>
+            <span id="potion-duration" class="text-xs text-on-surface"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quality Bar -->
+      <div class="space-y-2">
+        <div class="flex justify-between items-end">
+          <label class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Calidad de Elaboración</label>
+          <span id="potion-quality-label" class="font-label text-xs text-primary"></span>
+        </div>
+        <div class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+          <div id="potion-quality-bar" class="h-full bg-gradient-to-r from-primary-container to-primary shadow-[0_0_8px_rgba(251,203,112,0.4)] transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Saved Slots -->
+      <div class="pt-6 space-y-3">
+        <p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Pociones Guardadas</p>
+        <div id="slots-grid" class="grid grid-cols-5 gap-1.5"></div>
+      </div>
+
+    </div>
+  </article>
+</main>
+
+<!-- Footer -->
+<footer class="bg-surface-container-lowest py-12 mt-20 border-t border-outline-variant/10">
+  <div class="flex flex-col items-center gap-6 px-8 text-center">
+    <div class="flex items-center gap-2 text-primary font-headline font-bold text-lg">
+      <span class="material-symbols-outlined">science</span>
+      Minerva's Experiments
+    </div>
+    <nav class="flex flex-wrap justify-center gap-6">
+      <a class="font-sans text-[10px] uppercase tracking-[0.2em] font-medium text-on-surface-variant opacity-50 hover:text-primary transition-colors duration-500" href="#">La Gran Biblioteca</a>
+      <a class="font-sans text-[10px] uppercase tracking-[0.2em] font-medium text-on-surface-variant opacity-50 hover:text-primary transition-colors duration-500" href="#">Gremio de Alquimistas</a>
+      <a class="font-sans text-[10px] uppercase tracking-[0.2em] font-medium text-on-surface-variant opacity-50 hover:text-primary transition-colors duration-500" href="#">Términos de Secreto</a>
+    </nav>
+  </div>
+</footer>
+
+
+<!-- Save Popup -->
+<div id="save-popup" class="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
+  <div id="save-popup-box" class="glass-artifact border border-primary/30 rounded-xl px-8 py-5 shadow-2xl text-center opacity-0 scale-95 transition-all duration-300">
+    <span id="save-popup-icon" class="material-symbols-outlined text-primary text-4xl block mb-2" style="font-variation-settings:'FILL' 1">bookmark_added</span>
+    <p id="save-popup-msg" class="font-headline text-primary text-lg leading-snug"></p>
+    <p id="save-popup-sub" class="font-label text-on-surface-variant text-xs mt-1 max-w-[200px]"></p>
+  </div>
+</div>
+
+<script src="data/potion-data.js"></script>
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js');
+    });
+  }
+</script>
+</body>
+</html>
