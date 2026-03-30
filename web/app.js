@@ -230,10 +230,10 @@ function showSavePopup(idx, potion) {
   }, 2200);
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   if (window.supabase) {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    await loadCustomTexts();
+    loadCustomTexts();
   }
 
   initSlots();
