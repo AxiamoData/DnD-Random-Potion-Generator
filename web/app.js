@@ -3,11 +3,11 @@
 // =====================
 const SUPABASE_URL = 'https://snhowafpgqzpczonsugp.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_6GWwgPEFBnSewjtnzsJqAQ_kOBOp-jx';
-let supabase;
+let sbClient;
 
 async function loadCustomTexts() {
   try {
-    const { data, error } = await supabase.from('custom_texts').select('category, text');
+    const { data, error } = await sbClient.from('custom_texts').select('category, text');
     if (error) return;
     for (const { category, text } of data) {
       if (POTION_DATA[category]) POTION_DATA[category].push(text);
@@ -19,7 +19,7 @@ async function loadCustomTexts() {
 
 async function submitCustomText(category, text) {
   try {
-    const { error } = await supabase.from('custom_texts').insert({ category, text });
+    const { error } = await sbClient.from('custom_texts').insert({ category, text });
     return !error;
   } catch {
     return false;
@@ -232,7 +232,7 @@ function showSavePopup(idx, potion) {
 
 document.addEventListener("DOMContentLoaded", () => {
   if (window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     loadCustomTexts();
   }
 
