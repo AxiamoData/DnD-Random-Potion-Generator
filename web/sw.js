@@ -1,4 +1,4 @@
-const CACHE = 'minerva-v1';
+const CACHE = 'minerva-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,8 @@ const ASSETS = [
   './icon.svg',
   './icon-maskable.svg',
   './data/potion-data.js',
+  './biblioteca.html',
+  './biblioteca.js',
 ];
 
 self.addEventListener('install', e => {
