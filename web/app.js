@@ -184,16 +184,16 @@ function renderSlots() {
       const effectLabel = p.mainEffect.split('.')[0];
       btn.className = 'slot-tile w-full flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 rounded-lg border border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95 min-h-[72px] cursor-pointer';
       btn.innerHTML = `
-        <span class="material-symbols-outlined text-lg" style="font-variation-settings:'FILL' 1">bookmark_added</span>
-        <span class="font-label text-[9px] uppercase tracking-wide opacity-60">${i + 1}</span>
-        <span class="font-label text-[8px] leading-tight text-center px-0.5">${effectLabel}</span>
+        <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">bookmark_added</span>
+        <span class="font-label text-[10px] uppercase tracking-wide opacity-60">${i + 1}</span>
+        <span class="font-label text-[10px] leading-tight text-center px-0.5">${effectLabel}</span>
       `;
       del.classList.remove('hidden');
     } else {
       btn.className = 'slot-tile w-full flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-lg border border-outline-variant/15 text-on-surface-variant/30 hover:border-outline-variant/40 hover:text-on-surface-variant/50 transition-all active:scale-95 min-h-[72px] cursor-pointer';
       btn.innerHTML = `
-        <span class="material-symbols-outlined text-lg">bookmark</span>
-        <span class="font-label text-[9px] uppercase tracking-wide">${i + 1}</span>
+        <span class="material-symbols-outlined text-xl">bookmark</span>
+        <span class="font-label text-[10px] uppercase tracking-wide">${i + 1}</span>
       `;
       del.classList.add('hidden');
     }
