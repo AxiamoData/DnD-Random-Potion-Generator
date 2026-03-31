@@ -259,19 +259,25 @@
           <option value="sideEffects">Efecto Secundario</option>
           <option value="containers">Recipiente</option>
           <option value="labels">Etiqueta</option>
-          <option value="appearance">Apariencia (parte 1)</option>
-          <option value="appearance2">Apariencia (parte 2)</option>
+          <option value="appearance">Color</option>
+          <option value="appearance2">Apariencia</option>
           <option value="tasteAndSmell">Sabor / Olor</option>
           <option value="textures">Textura</option>
-          <option value="potency">Potencia</option>
-          <option value="quality">Calidad</option>
           <option value="duration">Duración</option>
-          <option value="titles">Título</option>
         </select>
       </div>
       <div class="space-y-2">
         <label for="custom-text-input" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Texto</label>
-        <textarea id="custom-text-input" rows="3" placeholder="Escribe el nuevo texto aquí..." class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 py-2 text-on-surface text-sm font-body resize-none focus:outline-none focus:border-primary/50 placeholder:text-on-surface-variant/30"></textarea>
+        <div class="relative">
+          <textarea id="custom-text-input" rows="3" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 pt-2 pb-11 text-on-surface text-sm font-body resize-none focus:outline-none focus:border-primary/50 placeholder:text-on-surface-variant/30"></textarea>
+          <div class="absolute bottom-2 right-1 pointer-events-none select-none">
+            <svg width="30" height="30" viewBox="0 0 30 30">
+              <circle cx="15" cy="15" r="12" fill="none" stroke="#4e4637" stroke-width="2" opacity="0.4"/>
+              <circle id="custom-text-counter-ring" cx="15" cy="15" r="12" fill="none" stroke="#d2c5b2" stroke-width="2" stroke-linecap="round" stroke-dasharray="75.40" stroke-dashoffset="75.40" transform="rotate(-90 15 15)"/>
+              <text id="custom-text-counter" x="15" y="15" text-anchor="middle" dominant-baseline="central" font-size="9" font-family="Work Sans, sans-serif" font-weight="500" fill="#d2c5b2"></text>
+            </svg>
+          </div>
+        </div>
       </div>
       <button id="custom-text-submit" class="w-full py-2.5 bg-primary/20 border border-primary/30 text-primary rounded-lg font-label text-sm uppercase tracking-widest hover:bg-primary/30 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none">
         Añadir

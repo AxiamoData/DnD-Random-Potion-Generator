@@ -46,18 +46,15 @@ const POTENCY_RARITY = {
 };
 
 const MAX_CHARS = {
-  mainEffects:  100,
-  sideEffects:   50,
+  mainEffects:  140,
+  sideEffects:   70,
   containers:    60,
   labels:        90,
   appearance:    20,
   appearance2:   40,
   tasteAndSmell: 40,
   textures:      30,
-  potency:       30,
-  quality:       30,
   duration:      20,
-  titles:        10,
 };
 
 function formatCustomText(text) {
@@ -93,29 +90,30 @@ function generatePotion() {
 
 function renderPotion(p) {
   const card = document.getElementById("potion-card");
-  const mainTitle = p.mainEffect.split(".")[0];
+  const mainEffect = formatCustomText(p.mainEffect);
+  const mainTitle = mainEffect.split(".")[0];
 
   document.getElementById("potion-name").textContent = `${p.title} de ${mainTitle}`;
   document.getElementById("potion-subtitle").textContent =
     `${p.title} · ${POTENCY_RARITY[p.potency] ?? "Artefacto"}`;
 
-  document.getElementById("potion-main-effect").textContent = p.mainEffect;
+  document.getElementById("potion-main-effect").textContent = mainEffect;
 
   const sideEl = document.getElementById("potion-side-effect");
-  sideEl.textContent = p.sideEffect;
+  sideEl.textContent = p.isPerfect ? p.sideEffect : formatCustomText(p.sideEffect);
   sideEl.className = p.isPerfect
     ? "text-sm italic perfect-side"
     : "text-on-surface-variant text-sm italic";
 
-  document.getElementById("potion-container").textContent  = p.container;
-  document.getElementById("potion-label").textContent      = p.label;
-  document.getElementById("potion-appearance").textContent = p.appearance;
-  document.getElementById("potion-texture").textContent    = p.texture;
+  document.getElementById("potion-container").textContent  = formatCustomText(p.container);
+  document.getElementById("potion-label").textContent      = formatCustomText(p.label);
+  document.getElementById("potion-appearance").textContent = formatCustomText(p.appearance);
+  document.getElementById("potion-texture").textContent    = formatCustomText(p.texture);
 
-  document.getElementById("potion-smell").textContent    = p.smell;
-  document.getElementById("potion-taste").textContent    = p.taste;
+  document.getElementById("potion-smell").textContent    = formatCustomText(p.smell);
+  document.getElementById("potion-taste").textContent    = formatCustomText(p.taste);
   document.getElementById("potion-potency").textContent  = p.potency;
-  document.getElementById("potion-duration").textContent = p.duration;
+  document.getElementById("potion-duration").textContent = formatCustomText(p.duration);
 
   const qMeta = QUALITY_META[p.quality] ?? { pct: "0%", label: p.quality };
   document.getElementById("potion-quality-bar").style.width = qMeta.pct;
@@ -270,6 +268,44 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("save-btn").addEventListener("click", savePotion);
 
   // Custom text form
+  function updateCustomTextPlaceholder() {
+    const category = document.getElementById("custom-category").value;
+    const examples = POTION_DATA[category];
+    const input = document.getElementById("custom-text-input");
+    if (examples && examples.length > 0) {
+      input.placeholder = `Ej: ${randomFrom(examples)}`;
+    }
+  }
+
+  function updateCharCounter() {
+    const category = document.getElementById("custom-category").value;
+    const input = document.getElementById("custom-text-input");
+    const counter = document.getElementById("custom-text-counter");
+    const ring = document.getElementById("custom-text-counter-ring");
+    const max = MAX_CHARS[category] ?? 100;
+    const used = input.value.length;
+    const remaining = max - used;
+    const circumference = 75.40;
+
+    ring.style.strokeDashoffset = circumference * (1 - used / max);
+    counter.textContent = remaining;
+
+    const ratio = remaining / max;
+    const color = ratio <= 0.07 ? "#ffb4ab" : ratio <= 0.2 ? "#eac079" : "#d2c5b2";
+    ring.style.stroke = color;
+    counter.style.fill = color;
+  }
+
+  updateCustomTextPlaceholder();
+  updateCharCounter();
+
+  document.getElementById("custom-category").addEventListener("change", () => {
+    updateCustomTextPlaceholder();
+    updateCharCounter();
+  });
+
+  document.getElementById("custom-text-input").addEventListener("input", updateCharCounter);
+
   document.getElementById("custom-text-toggle").addEventListener("click", () => {
     const form = document.getElementById("custom-text-form");
     const chevron = document.getElementById("custom-text-chevron");
@@ -286,7 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!rawText.trim()) return;
 
-    const text = formatCustomText(rawText);
+    const text = rawText.trim();
     const maxLen = MAX_CHARS[category] ?? 100;
 
     if (text.length > maxLen) {
