@@ -71,10 +71,18 @@ function randomFrom(array) {
 function generatePotion() {
   const quality = randomFrom(POTION_DATA.quality);
   const isPerfect = quality === "Perfecta.";
+  const isBad = quality === "Tosca -- 8d4 + 8.";
+  const sideEffect = isPerfect
+    ? "¡Las pociones perfectas no tienen efectos secundarios!"
+    : randomFrom(POTION_DATA.sideEffects);
+  const sideEffect2 = isBad
+    ? randomFrom(POTION_DATA.sideEffects.filter(s => s !== sideEffect))
+    : null;
   return {
     title:      randomFrom(POTION_DATA.titles),
     mainEffect: randomFrom(POTION_DATA.mainEffects),
-    sideEffect: isPerfect ? "¡Las pociones perfectas no tienen efectos secundarios!" : randomFrom(POTION_DATA.sideEffects),
+    sideEffect,
+    sideEffect2,
     container:  randomFrom(POTION_DATA.containers),
     label:      randomFrom(POTION_DATA.labels),
     appearance: randomFrom(POTION_DATA.appearance) + " con " + randomFrom(POTION_DATA.appearance2),
@@ -82,9 +90,10 @@ function generatePotion() {
     smell:      randomFrom(POTION_DATA.tasteAndSmell),
     texture:    randomFrom(POTION_DATA.textures),
     potency:    randomFrom(POTION_DATA.potency),
-    quality:    quality,
+    quality,
     duration:   randomFrom(POTION_DATA.duration),
-    isPerfect:  isPerfect,
+    isPerfect,
+    isBad,
   };
 }
 
@@ -99,11 +108,27 @@ function renderPotion(p) {
 
   document.getElementById("potion-main-effect").textContent = mainEffect;
 
+  const sideRow = document.getElementById('side-effect-row');
+  sideRow.querySelector('label').textContent = p.isBad ? 'Efectos Secundarios' : 'Efecto Secundario';
+
   const sideEl = document.getElementById("potion-side-effect");
   sideEl.textContent = p.isPerfect ? p.sideEffect : formatCustomText(p.sideEffect);
   sideEl.className = p.isPerfect
     ? "text-base italic perfect-side"
     : "text-on-surface-variant text-base italic";
+
+  let side2El = document.getElementById('potion-side-effect-2');
+  if (p.isBad && p.sideEffect2) {
+    if (!side2El) {
+      side2El = document.createElement('p');
+      side2El.id = 'potion-side-effect-2';
+      sideRow.appendChild(side2El);
+    }
+    side2El.className = 'text-on-surface-variant text-base italic';
+    side2El.textContent = formatCustomText(p.sideEffect2);
+  } else if (side2El) {
+    side2El.remove();
+  }
 
   document.getElementById("potion-container").textContent  = formatCustomText(p.container);
   document.getElementById("potion-label").textContent      = formatCustomText(p.label);
