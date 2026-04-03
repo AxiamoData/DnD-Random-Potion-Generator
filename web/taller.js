@@ -9,6 +9,15 @@ const QUALITY_LABEL = {
   "Perfecta.":              { pct: "100%", label: "Perfecta ✦" },
 };
 
+const POTENCY_RARITY = {
+  "Menor -- 1d4 + 1.":     "Artefacto Común",
+  "Común -- 2d4 + 2.":     "Artefacto Poco Común",
+  "Mayor -- 4d4 + 4.":     "Artefacto Inusual",
+  "Poderosa -- 6d4 + 6.":  "Artefacto Raro",
+  "Superior -- 8d4 + 8.":  "Artefacto Muy Raro",
+  "Suprema -- 10d4 + 20.": "Artefacto Legendario",
+};
+
 const CATEGORY_NAME = {
   mainEffects:   "Efecto Principal",
   sideEffects:   "Efecto Secundario",
@@ -20,6 +29,8 @@ const CATEGORY_NAME = {
   textures:      "Textura",
   duration:      "Duración",
 };
+
+let _allTexts = [];
 
 function escapeHtml(str) {
   return String(str)
@@ -35,6 +46,8 @@ function formatText(text) {
   const c = t.charAt(0).toUpperCase() + t.slice(1);
   return c.endsWith(".") ? c : c + ".";
 }
+
+// ── Auth zone ──────────────────────────────────────────────────────────────────
 
 function renderAuthZone(session) {
   const zone = document.getElementById("auth-zone");
@@ -56,6 +69,52 @@ function renderAuthZone(session) {
   }
 }
 
+// ── Modal ──────────────────────────────────────────────────────────────────────
+
+function openPotionModal(p) {
+  const mainTitle = p.mainEffect.split(".")[0];
+  const qMeta = QUALITY_LABEL[p.quality] ?? { pct: "0%", label: p.quality };
+
+  document.getElementById("modal-title").textContent    = `${p.title} de ${mainTitle}`;
+  document.getElementById("modal-subtitle").textContent = `${p.title} · ${POTENCY_RARITY[p.potency] ?? "Artefacto"}`;
+  document.getElementById("modal-main-effect").textContent = formatText(p.mainEffect);
+
+  document.getElementById("modal-side-label").textContent   = p.isBad ? "Efectos Secundarios" : "Efecto Secundario";
+  document.getElementById("modal-side-effect").textContent  = p.isPerfect ? p.sideEffect : formatText(p.sideEffect);
+
+  const side2El = document.getElementById("modal-side-effect-2");
+  if (p.sideEffect2) {
+    side2El.textContent = formatText(p.sideEffect2);
+    side2El.removeAttribute("hidden");
+  } else {
+    side2El.setAttribute("hidden", "");
+  }
+
+  document.getElementById("modal-container").textContent  = formatText(p.container);
+  document.getElementById("modal-label").textContent      = formatText(p.label);
+  document.getElementById("modal-appearance").textContent = formatText(p.appearance);
+  document.getElementById("modal-texture").textContent    = formatText(p.texture);
+  document.getElementById("modal-smell").textContent      = formatText(p.smell);
+  document.getElementById("modal-taste").textContent      = formatText(p.taste);
+  document.getElementById("modal-potency").textContent    = p.potency;
+  document.getElementById("modal-duration").textContent   = formatText(p.duration);
+
+  document.getElementById("modal-quality-bar").style.width    = qMeta.pct;
+  document.getElementById("modal-quality-label").textContent  = qMeta.label;
+
+  const modal = document.getElementById("potion-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closePotionModal() {
+  const modal = document.getElementById("potion-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+// ── Potions section ────────────────────────────────────────────────────────────
+
 function renderSavedPotions(rows) {
   const section = document.getElementById("potions-section");
   const count   = document.getElementById("potions-count");
@@ -66,57 +125,84 @@ function renderSavedPotions(rows) {
     return;
   }
 
+  const potionMap = {};
   section.innerHTML = rows.map(({ slot_index, potion: p }) => {
+    potionMap[slot_index] = p;
     const qMeta     = QUALITY_LABEL[p.quality] ?? { pct: "0%", label: p.quality };
     const mainTitle = escapeHtml(p.mainEffect.split(".")[0]);
-    const side      = p.isPerfect
-      ? `<span class="text-primary/50">Sin efectos secundarios</span>`
-      : escapeHtml(formatText(p.sideEffect));
-    const side2 = p.sideEffect2
-      ? `<br><span class="italic">${escapeHtml(formatText(p.sideEffect2))}</span>`
-      : "";
-
+    const rarity    = escapeHtml(POTENCY_RARITY[p.potency] ?? p.potency ?? "");
     return `
-      <div class="flex gap-3 px-4 py-3 border-b border-outline-variant/10 last:border-0">
-        <span class="font-label text-[9px] text-on-surface-variant/40 pt-1 w-5 shrink-0 text-right select-none">${slot_index + 1}</span>
+      <button class="w-full text-left flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10 last:border-0 hover:bg-surface-container/50 active:bg-surface-container transition-colors" data-slot="${slot_index}">
+        <span class="font-label text-[9px] text-on-surface-variant/40 w-5 shrink-0 text-right select-none">${slot_index + 1}</span>
         <div class="flex-1 space-y-1.5 min-w-0">
           <div class="font-headline text-sm text-primary leading-tight">${escapeHtml(p.title)} de ${mainTitle}</div>
           <div class="flex items-center gap-2">
             <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant/60">${escapeHtml(qMeta.label)}</span>
-            <div class="flex-1 h-1 rounded-full bg-outline-variant/20 max-w-[60px]">
+            <div class="h-1 rounded-full bg-outline-variant/20 w-12 shrink-0">
               <div class="h-1 rounded-full bg-primary/50" style="width:${qMeta.pct}"></div>
             </div>
+            <span class="font-label text-[9px] text-on-surface-variant/40 truncate">${rarity}</span>
           </div>
-          <div class="text-on-surface-variant text-xs italic leading-relaxed">${side}${side2}</div>
         </div>
-      </div>
+        <span class="material-symbols-outlined text-on-surface-variant/30 shrink-0" style="font-size:16px">chevron_right</span>
+      </button>
     `;
   }).join("");
+
+  section.querySelectorAll("button[data-slot]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      openPotionModal(potionMap[parseInt(btn.dataset.slot, 10)]);
+    });
+  });
 }
 
-function renderCustomTexts(rows) {
-  const section = document.getElementById("texts-section");
-  const count   = document.getElementById("texts-count");
-  count.textContent = `${rows.length} texto${rows.length !== 1 ? "s" : ""}`;
+// ── Texts section ──────────────────────────────────────────────────────────────
 
-  if (rows.length === 0) {
-    section.innerHTML = `<p class="px-5 py-6 text-center font-label text-sm text-on-surface-variant">No has añadido textos personalizados.</p>`;
+function buildTextFilter() {
+  const select = document.getElementById("texts-category");
+  const categories = [...new Set(_allTexts.map(t => t.category))];
+  select.innerHTML = `<option value="">Todos</option>` +
+    categories.map(cat =>
+      `<option value="${escapeHtml(cat)}">${escapeHtml(CATEGORY_NAME[cat] ?? cat)}</option>`
+    ).join("");
+}
+
+function renderTexts(categoryFilter) {
+  const section  = document.getElementById("texts-section");
+  const count    = document.getElementById("texts-count");
+  const filtered = categoryFilter
+    ? _allTexts.filter(t => t.category === categoryFilter)
+    : _allTexts;
+
+  count.textContent = `${filtered.length} texto${filtered.length !== 1 ? "s" : ""}`;
+
+  if (filtered.length === 0) {
+    section.innerHTML = `<p class="px-5 py-6 text-center font-label text-sm text-on-surface-variant">No hay textos en esta categoría.</p>`;
+    return;
+  }
+
+  if (categoryFilter) {
+    section.innerHTML = filtered.map((t, i) => `
+      <div class="flex gap-3 px-4 py-2.5 border-b border-outline-variant/10 last:border-0 ${i % 2 === 0 ? "" : "bg-surface-container/20"}">
+        <span class="font-label text-[9px] text-on-surface-variant/30 pt-0.5 w-4 shrink-0 text-right select-none">${i + 1}</span>
+        <span class="text-on-surface text-sm leading-relaxed">${escapeHtml(formatText(t.text))}</span>
+      </div>
+    `).join("");
     return;
   }
 
   const grouped = {};
-  for (const { category, text } of rows) {
+  for (const { category, text } of filtered) {
     if (!grouped[category]) grouped[category] = [];
     grouped[category].push(text);
   }
-
-  section.innerHTML = Object.entries(grouped).map(([category, texts]) => `
+  section.innerHTML = Object.entries(grouped).map(([cat, texts]) => `
     <div class="border-b border-outline-variant/10 last:border-0">
       <div class="px-4 py-2 bg-surface-container/40">
-        <span class="font-label text-[9px] uppercase tracking-widest text-primary/60">${escapeHtml(CATEGORY_NAME[category] ?? category)}</span>
+        <span class="font-label text-[9px] uppercase tracking-widest text-primary/60">${escapeHtml(CATEGORY_NAME[cat] ?? cat)}</span>
       </div>
       ${texts.map((text, i) => `
-        <div class="flex gap-3 px-4 py-2.5 ${i % 2 === 0 ? "" : "bg-surface-container/20"}">
+        <div class="flex gap-3 px-4 py-2.5 border-b border-outline-variant/5 last:border-0 ${i % 2 === 0 ? "" : "bg-surface-container/20"}">
           <span class="font-label text-[9px] text-on-surface-variant/30 pt-0.5 w-4 shrink-0 text-right select-none">${i + 1}</span>
           <span class="text-on-surface text-sm leading-relaxed">${escapeHtml(formatText(text))}</span>
         </div>
@@ -125,19 +211,9 @@ function renderCustomTexts(rows) {
   `).join("");
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const session = await authGetSession();
-  renderAuthZone(session);
+// ── Data & init ────────────────────────────────────────────────────────────────
 
-  const guestSection  = document.getElementById("guest-section");
-  const tallerContent = document.getElementById("taller-content");
-
-  if (!session) {
-    guestSection.removeAttribute("hidden");
-    return;
-  }
-
-  tallerContent.removeAttribute("hidden");
+async function loadData(session) {
   if (!AUTH_CLIENT) return;
 
   const [{ data: potions }, { data: texts }] = await Promise.all([
@@ -146,5 +222,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   ]);
 
   renderSavedPotions(potions ?? []);
-  renderCustomTexts(texts  ?? []);
+  _allTexts = texts ?? [];
+  buildTextFilter();
+  renderTexts("");
+
+  document.getElementById("texts-category").addEventListener("change", (e) => {
+    renderTexts(e.target.value);
+  });
+}
+
+async function init(session) {
+  renderAuthZone(session);
+  const guestSection  = document.getElementById("guest-section");
+  const tallerContent = document.getElementById("taller-content");
+
+  if (!session) {
+    guestSection.removeAttribute("hidden");
+    tallerContent.setAttribute("hidden", "");
+    return;
+  }
+
+  guestSection.setAttribute("hidden", "");
+  tallerContent.removeAttribute("hidden");
+  await loadData(session);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  document.getElementById("modal-close").addEventListener("click", closePotionModal);
+  document.getElementById("potion-modal").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) closePotionModal();
+  });
+
+  // Try immediate session first; authOnChange catches token-refresh cases
+  const session = await authGetSession();
+  authOnChange(newSession => init(newSession));
+  await init(session);
 });
