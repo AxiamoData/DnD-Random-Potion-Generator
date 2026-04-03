@@ -1,25 +1,25 @@
 // =====================
-// Supabase
+// Supabase data
+// AUTH_CLIENT, SUPABASE_URL, SUPABASE_KEY are defined in auth.js (loaded first)
 // =====================
-const SUPABASE_URL = 'https://snhowafpgqzpczonsugp.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_6GWwgPEFBnSewjtnzsJqAQ_kOBOp-jx';
-let sbClient;
 
 async function loadCustomTexts() {
+  if (!AUTH_CLIENT) return;
   try {
-    const { data, error } = await sbClient.from('custom_texts').select('category, text');
+    const { data, error } = await AUTH_CLIENT.from('custom_texts').select('category, text');
     if (error) return;
     for (const { category, text } of data) {
       if (POTION_DATA[category]) POTION_DATA[category].push(text);
     }
   } catch {
-    // sin conexión — seguimos con datos estáticos
+    // sin conexión — datos estáticos
   }
 }
 
-async function submitCustomText(category, text) {
+async function submitCustomText(category, text, userId) {
+  if (!AUTH_CLIENT) return false;
   try {
-    const { error } = await sbClient.from('custom_texts').insert({ category, text });
+    const { error } = await AUTH_CLIENT.from('custom_texts').insert({ category, text, user_id: userId });
     return !error;
   } catch {
     return false;
@@ -102,8 +102,8 @@ function renderPotion(p) {
   const sideEl = document.getElementById("potion-side-effect");
   sideEl.textContent = p.isPerfect ? p.sideEffect : formatCustomText(p.sideEffect);
   sideEl.className = p.isPerfect
-    ? "text-sm italic perfect-side"
-    : "text-on-surface-variant text-sm italic";
+    ? "text-base italic perfect-side"
+    : "text-on-surface-variant text-base italic";
 
   document.getElementById("potion-container").textContent  = formatCustomText(p.container);
   document.getElementById("potion-label").textContent      = formatCustomText(p.label);
@@ -126,12 +126,14 @@ function renderPotion(p) {
 }
 
 // =====================
-// Saved Slots
+// Saved Slots (auth-aware, in-memory cache)
 // =====================
 const SLOTS_KEY = 'minerva_saved_potions';
+const SLOTS_MIGRATED_KEY = 'minerva_slots_migrated';
 const NUM_SLOTS = 10;
+let _slots = Array(NUM_SLOTS).fill(null);
 
-function getSlots() {
+function getLocalSlots() {
   try {
     return JSON.parse(localStorage.getItem(SLOTS_KEY)) || Array(NUM_SLOTS).fill(null);
   } catch {
@@ -139,46 +141,86 @@ function getSlots() {
   }
 }
 
-function setSlots(slots) {
-  localStorage.setItem(SLOTS_KEY, JSON.stringify(slots));
+async function refreshSlots() {
+  const session = await authGetSession();
+  if (session && AUTH_CLIENT) {
+    const { data } = await AUTH_CLIENT
+      .from('saved_potions')
+      .select('slot_index, potion')
+      .eq('user_id', session.user.id);
+    _slots = Array(NUM_SLOTS).fill(null);
+    for (const row of (data ?? [])) _slots[row.slot_index] = row.potion;
+  } else {
+    _slots = getLocalSlots();
+  }
+  renderSlots();
 }
 
-function savePotion() {
+async function savePotion() {
   if (!window._lastPotion) return;
-  const slots = getSlots();
-  const idx = slots.findIndex(s => s === null);
+  const idx = _slots.findIndex(s => s === null);
   if (idx === -1) {
     showSavePopup(-1, null);
     return;
   }
-  slots[idx] = window._lastPotion;
-  setSlots(slots);
-  renderSlots();
+
+  const session = await authGetSession();
+  if (session && AUTH_CLIENT) {
+    await AUTH_CLIENT.from('saved_potions').upsert(
+      { user_id: session.user.id, slot_index: idx, potion: window._lastPotion },
+      { onConflict: 'user_id,slot_index' }
+    );
+  } else {
+    const local = getLocalSlots();
+    local[idx] = window._lastPotion;
+    localStorage.setItem(SLOTS_KEY, JSON.stringify(local));
+  }
+
+  await refreshSlots();
   showSavePopup(idx, window._lastPotion);
 }
 
 function loadPotion(idx) {
-  const slots = getSlots();
-  if (!slots[idx]) return;
-  window._lastPotion = slots[idx];
-  renderPotion(slots[idx]);
+  if (!_slots[idx]) return;
+  window._lastPotion = _slots[idx];
+  renderPotion(_slots[idx]);
   document.getElementById('save-btn').disabled = false;
 }
 
-function deletePotion(idx) {
-  const slots = getSlots();
-  slots[idx] = null;
-  setSlots(slots);
-  renderSlots();
+async function deletePotion(idx) {
+  const session = await authGetSession();
+  if (session && AUTH_CLIENT) {
+    await AUTH_CLIENT.from('saved_potions')
+      .delete()
+      .eq('user_id', session.user.id)
+      .eq('slot_index', idx);
+  } else {
+    const local = getLocalSlots();
+    local[idx] = null;
+    localStorage.setItem(SLOTS_KEY, JSON.stringify(local));
+  }
+  await refreshSlots();
+}
+
+async function migrateLocalSlots(userId) {
+  if (!AUTH_CLIENT) return;
+  if (localStorage.getItem(SLOTS_MIGRATED_KEY)) return;
+  const local = getLocalSlots();
+  const rows = local
+    .map((potion, slot_index) => potion ? { user_id: userId, slot_index, potion } : null)
+    .filter(Boolean);
+  if (rows.length > 0) {
+    await AUTH_CLIENT.from('saved_potions').upsert(rows, { onConflict: 'user_id,slot_index' });
+  }
+  localStorage.setItem(SLOTS_MIGRATED_KEY, '1');
 }
 
 function renderSlots() {
-  const slots = getSlots();
   for (let i = 0; i < NUM_SLOTS; i++) {
     const btn = document.getElementById(`slot-btn-${i}`);
     const del = document.getElementById(`slot-del-${i}`);
     if (!btn) continue;
-    const p = slots[i];
+    const p = _slots[i];
 
     if (p) {
       const effectLabel = p.mainEffect.split('.')[0];
@@ -220,8 +262,7 @@ function initSlots() {
     document.getElementById(`slot-btn-${i}`).addEventListener('click', () => loadPotion(i));
     document.getElementById(`slot-del-${i}`).addEventListener('click', () => deletePotion(i));
   }
-
-  renderSlots();
+  // NOTE: refreshSlots() is called separately after initSlots()
 }
 
 function showSavePopup(idx, potion) {
@@ -250,13 +291,60 @@ function showSavePopup(idx, potion) {
   }, 2200);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (window.supabase) {
-    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    loadCustomTexts();
+// =====================
+// Auth UI
+// =====================
+function renderAuthZone(session) {
+  const zone = document.getElementById('auth-zone');
+  if (!zone) return;
+  if (session) {
+    zone.innerHTML = `
+      <span class="font-label text-[10px] text-on-surface-variant hidden sm:block truncate max-w-[130px]">${session.user.email}</span>
+      <button id="signout-btn" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50 hover:text-error transition-colors px-2 py-1 flex items-center gap-1">
+        <span class="material-symbols-outlined" style="font-size:14px">logout</span>Salir
+      </button>
+    `;
+    document.getElementById('signout-btn').addEventListener('click', authSignOut);
+  } else {
+    zone.innerHTML = `
+      <a href="login.html" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50 hover:text-primary transition-colors flex items-center gap-1">
+        <span class="material-symbols-outlined" style="font-size:14px">login</span>Iniciar sesión
+      </a>
+    `;
+  }
+}
+
+function updateCustomFormAuth(session) {
+  const prompt = document.getElementById('custom-text-auth-prompt');
+  const fields = document.getElementById('custom-text-form-fields');
+  if (!prompt || !fields) return;
+  prompt.toggleAttribute('hidden', !!session);
+  fields.toggleAttribute('hidden', !session);
+}
+
+// =====================
+// Init
+// =====================
+document.addEventListener("DOMContentLoaded", async () => {
+  initSlots();
+
+  if (AUTH_CLIENT) {
+    loadCustomTexts(); // async, non-blocking — enriches POTION_DATA in background
+
+    const session = await authGetSession();
+    renderAuthZone(session);
+    updateCustomFormAuth(session);
+    if (session) await migrateLocalSlots(session.user.id);
+
+    authOnChange(async (session) => {
+      renderAuthZone(session);
+      updateCustomFormAuth(session);
+      if (session) await migrateLocalSlots(session.user.id);
+      await refreshSlots();
+    });
   }
 
-  initSlots();
+  await refreshSlots();
 
   document.getElementById("generate-btn").addEventListener("click", () => {
     const p = generatePotion();
@@ -315,6 +403,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("custom-text-submit").addEventListener("click", async () => {
+    const session = await authGetSession();
+    if (!session) return;
+
     const category = document.getElementById("custom-category").value;
     const rawText = document.getElementById("custom-text-input").value;
     const feedback = document.getElementById("custom-text-feedback");
@@ -336,7 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
     feedback.textContent = "Guardando...";
     feedback.className = "font-label text-[11px] text-center text-on-surface-variant";
 
-    const ok = await submitCustomText(category, text);
+    const ok = await submitCustomText(category, text, session.user.id);
 
     if (ok) {
       POTION_DATA[category].push(text);

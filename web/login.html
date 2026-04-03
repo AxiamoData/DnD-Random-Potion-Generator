@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Acceder — Minerva's Experiments</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#fbcb70"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="apple-touch-icon" href="icon.svg"/>
+<link rel="icon" type="image/svg+xml" href="icon.svg"/>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@400;500&family=Work+Sans:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "on-primary-fixed-variant": "#5d4200",
+          "tertiary": "#decafb",
+          "on-tertiary": "#382950",
+          "surface-variant": "#363245",
+          "inverse-surface": "#e6dff7",
+          "secondary-container": "#5e4204",
+          "surface-container-lowest": "#0f0c1c",
+          "on-secondary-fixed": "#271900",
+          "surface-container-high": "#2b2839",
+          "primary": "#fbcb70",
+          "error": "#ffb4ab",
+          "on-secondary-fixed-variant": "#5e4204",
+          "on-error-container": "#ffdad6",
+          "on-error": "#690005",
+          "on-surface-variant": "#d2c5b2",
+          "outline-variant": "#4e4637",
+          "primary-container": "#ddb058",
+          "on-tertiary-fixed": "#221439",
+          "surface-bright": "#3a3749",
+          "secondary-fixed-dim": "#eac079",
+          "on-tertiary-fixed-variant": "#4f3f68",
+          "on-primary": "#412d00",
+          "secondary-fixed": "#ffdea9",
+          "primary-fixed-dim": "#eec066",
+          "on-secondary": "#422c00",
+          "on-primary-fixed": "#271900",
+          "on-secondary-container": "#d7af6a",
+          "inverse-primary": "#7b5801",
+          "surface": "#141122",
+          "tertiary-fixed-dim": "#d2beee",
+          "surface-container-low": "#1c192a",
+          "surface-container-highest": "#363245",
+          "error-container": "#93000a",
+          "tertiary-container": "#c1aede",
+          "tertiary-fixed": "#ecdcff",
+          "background": "#141122",
+          "inverse-on-surface": "#312e40",
+          "outline": "#9b8f7e",
+          "secondary": "#eac079",
+          "surface-tint": "#eec066",
+          "primary-fixed": "#ffdea5",
+          "on-background": "#e6dff7",
+          "surface-container": "#201d2f",
+          "on-surface": "#e6dff7",
+          "on-tertiary-container": "#4f4069",
+          "surface-dim": "#141122",
+          "on-primary-container": "#5e4300"
+        },
+        fontFamily: {
+          "headline": ["Noto Serif", "serif"],
+          "body": ["Inter", "sans-serif"],
+          "label": ["Work Sans", "sans-serif"]
+        },
+        borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+      },
+    },
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .glass-artifact {
+    backdrop-filter: blur(12px);
+    background: rgba(43, 40, 57, 0.7);
+  }
+  body {
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary">
+
+<!-- Header -->
+<header class="sticky top-0 z-50 border-b border-outline-variant/20 bg-gradient-to-b from-surface-container-low to-surface shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
+  <div class="flex justify-center items-center w-full px-6 py-4 max-w-screen-xl mx-auto">
+    <a href="index.html" class="flex items-center gap-3 hover:opacity-80 active:opacity-60 transition-opacity">
+      <span class="material-symbols-outlined text-primary text-2xl">science</span>
+      <h1 class="text-2xl font-headline font-bold text-primary drop-shadow-[0_2px_4px_rgba(251,203,112,0.3)] tracking-tight">Minerva's Experiments</h1>
+    </a>
+  </div>
+</header>
+
+<main class="min-h-screen max-w-sm mx-auto px-4 py-12 flex flex-col items-center justify-start gap-8">
+
+  <!-- Card -->
+  <div class="w-full rounded-xl overflow-hidden border border-outline-variant/15 glass-artifact shadow-2xl">
+
+    <!-- Card Header -->
+    <div class="bg-surface-container-highest/50 px-6 py-5 border-b border-outline-variant/10 text-center">
+      <span class="material-symbols-outlined text-primary text-3xl block mb-1" style="font-variation-settings:'FILL' 1">potions</span>
+      <h2 class="font-headline text-xl text-primary tracking-tight">Acceder a tu cuenta</h2>
+    </div>
+
+    <!-- Tab Switcher -->
+    <div class="flex border-b border-outline-variant/10">
+      <button id="tab-login" class="flex-1 py-3 font-label text-[11px] uppercase tracking-widest transition-colors text-primary border-b-2 border-primary">
+        Entrar
+      </button>
+      <button id="tab-register" class="flex-1 py-3 font-label text-[11px] uppercase tracking-widest transition-colors text-on-surface-variant/50 hover:text-on-surface-variant border-b-2 border-transparent">
+        Registrarse
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form id="auth-form" class="px-6 py-6 space-y-4" novalidate>
+      <div class="space-y-1.5">
+        <label for="auth-email" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Email</label>
+        <input id="auth-email" type="email" autocomplete="email" required
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 py-2.5 text-on-surface text-sm font-body focus:outline-none focus:border-primary/50 placeholder:text-on-surface-variant/30"
+          placeholder="tu@email.com"/>
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="auth-password" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Contraseña</label>
+        <input id="auth-password" type="password" autocomplete="current-password" required
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 py-2.5 text-on-surface text-sm font-body focus:outline-none focus:border-primary/50 placeholder:text-on-surface-variant/30"
+          placeholder="••••••••"/>
+      </div>
+
+      <div id="confirm-password-wrap" hidden class="space-y-1.5">
+        <label for="auth-password-confirm" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Confirmar contraseña</label>
+        <input id="auth-password-confirm" type="password" autocomplete="new-password"
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 py-2.5 text-on-surface text-sm font-body focus:outline-none focus:border-primary/50 placeholder:text-on-surface-variant/30"
+          placeholder="••••••••"/>
+      </div>
+
+      <p id="auth-error" hidden class="font-label text-xs text-error text-center py-1"></p>
+      <p id="auth-success" hidden class="font-label text-xs text-primary text-center py-1"></p>
+
+      <button id="auth-submit" type="submit"
+        class="w-full py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary font-label font-semibold text-sm uppercase tracking-widest rounded-lg shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none">
+        Entrar
+      </button>
+    </form>
+  </div>
+
+  <!-- Skip login -->
+  <a href="index.html" class="font-label text-[11px] text-on-surface-variant/50 hover:text-on-surface-variant transition-colors flex items-center gap-1.5">
+    Continuar sin cuenta
+    <span class="material-symbols-outlined" style="font-size:14px">arrow_forward</span>
+  </a>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+<script>
+  const tabLogin    = document.getElementById('tab-login');
+  const tabRegister = document.getElementById('tab-register');
+  const confirmWrap = document.getElementById('confirm-password-wrap');
+  const submitBtn   = document.getElementById('auth-submit');
+  const errorEl     = document.getElementById('auth-error');
+  const successEl   = document.getElementById('auth-success');
+  let isRegister    = false;
+
+  function setTab(register) {
+    isRegister = register;
+    confirmWrap.toggleAttribute('hidden', !register);
+    submitBtn.textContent = register ? 'Crear cuenta' : 'Entrar';
+    document.getElementById('auth-password').autocomplete = register ? 'new-password' : 'current-password';
+
+    tabLogin.className    = `flex-1 py-3 font-label text-[11px] uppercase tracking-widest transition-colors border-b-2 ${register ? 'text-on-surface-variant/50 hover:text-on-surface-variant border-transparent' : 'text-primary border-primary'}`;
+    tabRegister.className = `flex-1 py-3 font-label text-[11px] uppercase tracking-widest transition-colors border-b-2 ${register ? 'text-primary border-primary' : 'text-on-surface-variant/50 hover:text-on-surface-variant border-transparent'}`;
+    clearMessages();
+  }
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.removeAttribute('hidden');
+    successEl.setAttribute('hidden', '');
+  }
+
+  function showSuccess(msg) {
+    successEl.textContent = msg;
+    successEl.removeAttribute('hidden');
+    errorEl.setAttribute('hidden', '');
+  }
+
+  function clearMessages() {
+    errorEl.setAttribute('hidden', '');
+    successEl.setAttribute('hidden', '');
+  }
+
+  tabLogin.addEventListener('click',    () => setTab(false));
+  tabRegister.addEventListener('click', () => setTab(true));
+
+  document.getElementById('auth-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearMessages();
+
+    const email    = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+
+    if (!email || !password) { showError('Rellena todos los campos.'); return; }
+
+    if (isRegister) {
+      const confirm = document.getElementById('auth-password-confirm').value;
+      if (password !== confirm) { showError('Las contraseñas no coinciden.'); return; }
+      if (password.length < 6)  { showError('La contraseña debe tener al menos 6 caracteres.'); return; }
+    }
+
+    submitBtn.disabled = true;
+
+    if (isRegister) {
+      const { error } = await authSignUp(email, password);
+      if (error) {
+        showError(error.message === 'User already registered' ? 'Este email ya tiene cuenta.' : error.message);
+        submitBtn.disabled = false;
+      } else {
+        showSuccess('Cuenta creada. Revisa tu email para confirmarla y luego inicia sesión.');
+        submitBtn.disabled = false;
+      }
+    } else {
+      const { error } = await authSignIn(email, password);
+      if (error) {
+        showError(error.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos.' : error.message);
+        submitBtn.disabled = false;
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+  });
+
+  // If already logged in, skip login page
+  (async () => {
+    const session = await authGetSession();
+    if (session) window.location.href = 'index.html';
+  })();
+</script>
+</body>
+</html>
