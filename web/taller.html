@@ -3,21 +3,18 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<meta name="description" content="La Gran Biblioteca — consulta todos los textos del generador de pociones de Minerva."/>
-<title>La Gran Biblioteca — Minerva's Experiments</title>
+<meta name="description" content="Mi Taller — tus pociones guardadas y textos personalizados en Minerva's Experiments."/>
+<title>Mi Taller — Minerva's Experiments</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json"/>
 <meta name="theme-color" content="#fbcb70"/>
-
-<!-- iOS PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Minerva"/>
 <link rel="apple-touch-icon" href="icon.svg"/>
-
-<!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="icon.svg"/>
+
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@400;500&family=Work+Sans:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
@@ -104,65 +101,81 @@
 </head>
 <body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary">
 
-<!-- Top Navigation Bar -->
+<!-- Header -->
 <header class="sticky top-0 z-50 border-b border-outline-variant/20 bg-gradient-to-b from-surface-container-low to-surface shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
-  <div class="flex justify-center items-center w-full px-6 py-4 max-w-screen-xl mx-auto">
+  <div class="grid grid-cols-[1fr_auto_1fr] items-center w-full px-4 py-4 max-w-screen-xl mx-auto">
+    <div></div>
     <a href="index.html" class="flex items-center gap-3 hover:opacity-80 active:opacity-60 transition-opacity">
       <span class="material-symbols-outlined text-primary text-2xl">science</span>
-      <h1 class="text-2xl font-headline font-bold text-primary drop-shadow-[0_2px_4px_rgba(251,203,112,0.3)] tracking-tight">Minerva's Experiments</h1>
+      <h1 class="text-2xl font-headline font-bold text-primary drop-shadow-[0_2px_4px_rgba(251,203,112,0.3)] tracking-tight whitespace-nowrap">Minerva's Experiments</h1>
     </a>
+    <div id="auth-zone" class="flex justify-end items-center gap-1"></div>
   </div>
 </header>
 
 <main class="min-h-screen max-w-lg mx-auto px-4 py-8 flex flex-col gap-6">
 
+  <!-- Page title -->
   <div class="text-center space-y-2 mt-4">
     <div class="flex items-center justify-center gap-2 text-primary">
-      <span class="material-symbols-outlined text-2xl">auto_stories</span>
-      <h2 class="font-headline text-2xl font-bold tracking-tight">La Gran Biblioteca</h2>
+      <span class="material-symbols-outlined text-2xl">home_repair_service</span>
+      <h2 class="font-headline text-2xl font-bold tracking-tight">Mi Taller</h2>
     </div>
-    <p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Consulta todos los textos de una categoría</p>
+    <p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Tu colección personal</p>
   </div>
 
-  <div class="space-y-2">
-    <label for="library-category" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Categoría</label>
-    <select id="library-category" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 py-2 text-on-surface text-sm font-body focus:outline-none focus:border-primary/50">
-      <option value="mainEffects">Efecto Principal</option>
-      <option value="sideEffects">Efecto Secundario</option>
-      <option value="containers">Recipiente</option>
-      <option value="labels">Etiqueta</option>
-      <option value="appearance">Color</option>
-      <option value="appearance2">Apariencia</option>
-      <option value="tasteAndSmell">Sabor / Olor</option>
-      <option value="textures">Textura</option>
-      <option value="duration">Duración</option>
-    </select>
+  <!-- Guest state -->
+  <div id="guest-section" hidden class="rounded-xl border border-outline-variant/15 glass-artifact shadow-2xl px-6 py-10 flex flex-col items-center gap-4 text-center">
+    <span class="material-symbols-outlined text-primary/40 text-4xl">lock</span>
+    <p class="font-label text-sm text-on-surface-variant">Necesitas una cuenta para ver tu taller.</p>
+    <a href="login.html" class="font-label text-[11px] uppercase tracking-widest text-primary border border-primary/30 rounded-lg px-4 py-2 hover:bg-primary/10 transition-colors">
+      Iniciar sesión
+    </a>
   </div>
 
-  <div id="library-count" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant text-right"></div>
+  <!-- Taller content -->
+  <div id="taller-content" hidden class="flex flex-col gap-8">
 
-  <div id="library-list" class="rounded-xl overflow-hidden border border-outline-variant/15 glass-artifact shadow-2xl divide-y divide-outline-variant/10"></div>
+    <!-- Pociones guardadas -->
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between px-1">
+        <span class="font-label text-[10px] uppercase tracking-widest text-primary font-semibold">Pociones Guardadas</span>
+        <span id="potions-count" class="font-label text-[10px] text-on-surface-variant"></span>
+      </div>
+      <div id="potions-section" class="rounded-xl overflow-hidden border border-outline-variant/15 glass-artifact shadow-2xl divide-y divide-outline-variant/10"></div>
+    </div>
+
+    <!-- Mis textos -->
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between px-1">
+        <span class="font-label text-[10px] uppercase tracking-widest text-primary font-semibold">Mis Textos</span>
+        <span id="texts-count" class="font-label text-[10px] text-on-surface-variant"></span>
+      </div>
+      <div id="texts-section" class="rounded-xl overflow-hidden border border-outline-variant/15 glass-artifact shadow-2xl"></div>
+    </div>
+
+  </div>
 
 </main>
 
 <!-- Footer -->
-<footer class="bg-surface-container-lowest py-12 mt-20 border-t border-outline-variant/10">
+<footer class="bg-surface-container-lowest py-6 mt-10 border-t border-outline-variant/10">
   <div class="flex flex-col items-center gap-6 px-8 text-center">
     <div class="flex items-center gap-2 text-primary font-headline font-bold text-lg">
       <span class="material-symbols-outlined">science</span>
       Minerva's Experiments
     </div>
     <nav class="flex flex-wrap justify-center gap-6">
-      <a class="font-sans text-[10px] uppercase tracking-[0.2em] font-medium text-primary opacity-70" href="biblioteca.html">La Gran Biblioteca</a>
-      <a class="font-sans text-[10px] uppercase tracking-[0.2em] font-medium text-on-surface-variant opacity-50 hover:text-primary transition-colors duration-500" href="taller.html">Mi Taller</a>
+      <a class="font-sans text-[10px] uppercase tracking-[0.2em] font-medium text-on-surface-variant opacity-50 hover:text-primary transition-colors duration-500" href="biblioteca.html">La Gran Biblioteca</a>
+      <a class="font-sans text-[10px] uppercase tracking-[0.2em] font-medium text-primary opacity-70" href="taller.html">Mi Taller</a>
       <a class="font-sans text-[10px] uppercase tracking-[0.2em] font-medium text-on-surface-variant opacity-50 hover:text-primary transition-colors duration-500" href="index.html">Términos de Secreto</a>
     </nav>
   </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="data/potion-data.js"></script>
-<script src="biblioteca.js"></script>
+<script src="auth.js"></script>
+<script src="taller.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
