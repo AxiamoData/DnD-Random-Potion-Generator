@@ -115,11 +115,12 @@
 
 <!-- Top Navigation Bar -->
 <header class="sticky top-0 z-50 border-b border-outline-variant/20 bg-gradient-to-b from-surface-container-low to-surface shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
-  <div class="flex justify-center items-center w-full px-6 py-4 max-w-screen-xl mx-auto">
+  <div class="relative flex justify-center items-center w-full px-6 py-4 max-w-screen-xl mx-auto">
     <div class="flex items-center gap-3">
       <span class="material-symbols-outlined text-primary text-2xl">science</span>
       <h1 class="text-2xl font-headline font-bold text-primary drop-shadow-[0_2px_4px_rgba(251,203,112,0.3)] tracking-tight">Minerva's Experiments</h1>
     </div>
+    <div id="auth-zone" class="absolute right-0 flex items-center gap-1"></div>
   </div>
 </header>
 
@@ -251,38 +252,50 @@
       </div>
       <span id="custom-text-chevron" class="material-symbols-outlined text-on-surface-variant transition-transform duration-200">expand_more</span>
     </button>
-    <div id="custom-text-form" hidden class="px-6 pb-6 space-y-4 border-t border-outline-variant/10">
-      <div class="space-y-2 pt-4">
-        <label for="custom-category" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Categoría</label>
-        <select id="custom-category" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 py-2 text-on-surface text-sm font-body focus:outline-none focus:border-primary/50">
-          <option value="mainEffects">Efecto Principal</option>
-          <option value="sideEffects">Efecto Secundario</option>
-          <option value="containers">Recipiente</option>
-          <option value="labels">Etiqueta</option>
-          <option value="appearance">Color</option>
-          <option value="appearance2">Apariencia</option>
-          <option value="tasteAndSmell">Sabor / Olor</option>
-          <option value="textures">Textura</option>
-          <option value="duration">Duración</option>
-        </select>
+    <div id="custom-text-form" hidden class="border-t border-outline-variant/10">
+
+      <!-- Shown when NOT logged in -->
+      <div id="custom-text-auth-prompt" class="px-6 pt-6 pb-6 text-center space-y-3">
+        <span class="material-symbols-outlined text-on-surface-variant/30 text-3xl block">lock</span>
+        <p class="font-label text-sm text-on-surface-variant">Inicia sesión para contribuir con tus propios textos.</p>
+        <a href="login.html" class="inline-block px-4 py-2 bg-primary/20 border border-primary/30 text-primary rounded-lg font-label text-sm uppercase tracking-widest hover:bg-primary/30 transition-all">Iniciar sesión</a>
       </div>
-      <div class="space-y-2">
-        <label for="custom-text-input" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Texto</label>
-        <div class="relative">
-          <textarea id="custom-text-input" rows="3" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 pt-2 pb-11 text-on-surface text-sm font-body resize-none focus:outline-none focus:border-primary/50 placeholder:text-on-surface-variant/30"></textarea>
-          <div class="absolute bottom-2 right-1 pointer-events-none select-none">
-            <svg width="30" height="30" viewBox="0 0 30 30">
-              <circle cx="15" cy="15" r="12" fill="none" stroke="#4e4637" stroke-width="2" opacity="0.4"/>
-              <circle id="custom-text-counter-ring" cx="15" cy="15" r="12" fill="none" stroke="#d2c5b2" stroke-width="2" stroke-linecap="round" stroke-dasharray="75.40" stroke-dashoffset="75.40" transform="rotate(-90 15 15)"/>
-              <text id="custom-text-counter" x="15" y="15" text-anchor="middle" dominant-baseline="central" font-size="9" font-family="Work Sans, sans-serif" font-weight="500" fill="#d2c5b2"></text>
-            </svg>
+
+      <!-- Shown when logged in -->
+      <div id="custom-text-form-fields" hidden class="px-6 pb-6 space-y-4 pt-4">
+        <div class="space-y-2">
+          <label for="custom-category" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Categoría</label>
+          <select id="custom-category" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 py-2 text-on-surface text-sm font-body focus:outline-none focus:border-primary/50">
+            <option value="mainEffects">Efecto Principal</option>
+            <option value="sideEffects">Efecto Secundario</option>
+            <option value="containers">Recipiente</option>
+            <option value="labels">Etiqueta</option>
+            <option value="appearance">Color</option>
+            <option value="appearance2">Apariencia</option>
+            <option value="tasteAndSmell">Sabor / Olor</option>
+            <option value="textures">Textura</option>
+            <option value="duration">Duración</option>
+          </select>
+        </div>
+        <div class="space-y-2">
+          <label for="custom-text-input" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Texto</label>
+          <div class="relative">
+            <textarea id="custom-text-input" rows="3" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 pt-2 pb-11 text-on-surface text-sm font-body resize-none focus:outline-none focus:border-primary/50 placeholder:text-on-surface-variant/30"></textarea>
+            <div class="absolute bottom-2 right-1 pointer-events-none select-none">
+              <svg width="30" height="30" viewBox="0 0 30 30">
+                <circle cx="15" cy="15" r="12" fill="none" stroke="#4e4637" stroke-width="2" opacity="0.4"/>
+                <circle id="custom-text-counter-ring" cx="15" cy="15" r="12" fill="none" stroke="#d2c5b2" stroke-width="2" stroke-linecap="round" stroke-dasharray="75.40" stroke-dashoffset="75.40" transform="rotate(-90 15 15)"/>
+                <text id="custom-text-counter" x="15" y="15" text-anchor="middle" dominant-baseline="central" font-size="9" font-family="Work Sans, sans-serif" font-weight="500" fill="#d2c5b2"></text>
+              </svg>
+            </div>
           </div>
         </div>
+        <button id="custom-text-submit" class="w-full py-2.5 bg-primary/20 border border-primary/30 text-primary rounded-lg font-label text-sm uppercase tracking-widest hover:bg-primary/30 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none">
+          Añadir
+        </button>
+        <p id="custom-text-feedback" class="font-label text-[11px] text-center text-on-surface-variant min-h-[1rem]"></p>
       </div>
-      <button id="custom-text-submit" class="w-full py-2.5 bg-primary/20 border border-primary/30 text-primary rounded-lg font-label text-sm uppercase tracking-widest hover:bg-primary/30 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none">
-        Añadir
-      </button>
-      <p id="custom-text-feedback" class="font-label text-[11px] text-center text-on-surface-variant min-h-[1rem]"></p>
+
     </div>
   </section>
 
@@ -315,6 +328,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="data/potion-data.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 <script>
   if ('serviceWorker' in navigator) {

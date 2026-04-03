@@ -1,8 +1,10 @@
-const CACHE = 'minerva-v2';
+const CACHE = 'minerva-v3';
 const ASSETS = [
   './',
   './index.html',
   './app.js',
+  './auth.js',
+  './login.html',
   './manifest.json',
   './icon.svg',
   './icon-maskable.svg',
