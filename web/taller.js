@@ -282,13 +282,13 @@ async function init(session) {
   const tallerContent = document.getElementById("taller-content");
 
   if (!session) {
-    guestSection.removeAttribute("hidden");
-    tallerContent.setAttribute("hidden", "");
+    guestSection.style.display  = '';
+    tallerContent.style.display = 'none';
     return;
   }
 
-  guestSection.setAttribute("hidden", "");
-  tallerContent.removeAttribute("hidden");
+  guestSection.style.display  = 'none';
+  tallerContent.style.display = '';
   await loadData(session);
 }
 
