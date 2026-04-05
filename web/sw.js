@@ -1,4 +1,4 @@
-const CACHE = 'minerva-v8';
+const CACHE = 'minerva-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   './biblioteca.js',
   './taller.html',
   './taller.js',
+  './pues.html',
 ];
 
 self.addEventListener('install', e => {
