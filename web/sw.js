@@ -1,4 +1,4 @@
-const CACHE = 'minerva-v11';
+const CACHE = 'minerva-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -19,7 +19,7 @@ const ASSETS = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
-      .then(c => c.addAll(ASSETS))
+      .then(c => c.addAll(ASSETS).catch(() => {}))
       .then(() => self.skipWaiting())
   );
 });
@@ -43,7 +43,7 @@ self.addEventListener('fetch', e => {
         const clone = response.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
         return response;
-      });
+      }).catch(() => new Response('Sin conexión', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }));
     })
   );
 });
