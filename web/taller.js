@@ -270,25 +270,10 @@ function attachTextEditListeners(section) {
 async function deleteText(row) {
   const id     = row.dataset.id;
   const delBtn = row.querySelector('.delete-text-btn');
+  if (delBtn.disabled) return;
 
-  // First click: enter confirm state
-  if (!delBtn.dataset.confirming) {
-    delBtn.dataset.confirming = '1';
-    delBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">check</span>';
-    delBtn.classList.add('text-error');
-    const reset = setTimeout(() => {
-      delete delBtn.dataset.confirming;
-      delBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">delete</span>';
-      delBtn.classList.remove('text-error');
-    }, 2500);
-    delBtn.dataset.resetTimer = reset;
-    return;
-  }
-
-  // Second click: delete
-  clearTimeout(Number(delBtn.dataset.resetTimer));
-  delBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">hourglass_empty</span>';
-  delBtn.disabled  = true;
+  delBtn.disabled = true;
+  delBtn.style.opacity = '0.4';
 
   const { error } = await AUTH_CLIENT.from('custom_texts')
     .delete()
@@ -302,9 +287,8 @@ async function deleteText(row) {
     const visible = currentFilter ? _allTexts.filter(t => t.category === currentFilter) : _allTexts;
     document.getElementById('texts-count').textContent = `${visible.length} texto${visible.length !== 1 ? "s" : ""}`;
   } else {
-    delBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">delete</span>';
-    delBtn.disabled  = false;
-    delete delBtn.dataset.confirming;
+    delBtn.disabled = false;
+    delBtn.style.opacity = '';
   }
 }
 
