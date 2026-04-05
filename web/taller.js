@@ -233,7 +233,7 @@ function renderSavedPotions(rows) {
     const rarity    = escapeHtml(POTENCY_RARITY[p.potency] ?? p.potency ?? "");
     return `
       <button class="w-full text-left flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10 last:border-0 hover:bg-surface-container/50 active:bg-surface-container transition-colors" data-slot="${slot_index}">
-        <span class="font-label text-[9px] text-on-surface-variant/40 w-5 shrink-0 text-right select-none">${slot_index + 1}</span>
+        <span class="font-label text-xs text-on-surface-variant/50 w-5 shrink-0 text-center select-none">${slot_index + 1}</span>
         <div class="flex-1 space-y-1.5 min-w-0">
           <div class="font-headline text-sm text-primary leading-tight">${escapeHtml(p.title)} de ${mainTitle}</div>
           <div class="flex items-center gap-2">
@@ -355,7 +355,7 @@ function renderTexts(categoryFilter) {
 
   const rowHtml = (t, i, extraClass = '') => `
     <div class="flex items-center gap-3 px-4 py-2.5 border-b border-outline-variant/10 last:border-0 ${i % 2 === 0 ? "" : "bg-surface-container/20"} ${extraClass}" data-id="${escapeHtml(t.id)}">
-      <span class="font-label text-[9px] text-on-surface-variant/30 pt-0.5 w-4 shrink-0 text-right select-none">${i + 1}</span>
+      <span class="font-label text-xs text-on-surface-variant/50 w-5 shrink-0 text-center select-none">${i + 1}</span>
       <span class="text-content text-on-surface text-sm leading-relaxed flex-1">${escapeHtml(formatText(t.text))}</span>
       <button class="edit-text-btn shrink-0 text-on-surface-variant/20 hover:text-primary transition-colors">
         <span class="material-symbols-outlined" style="font-size:14px">edit</span>
@@ -393,7 +393,7 @@ async function loadData(session) {
 
   const [{ data: potions }, { data: texts }] = await Promise.all([
     AUTH_CLIENT.from("saved_potions").select("slot_index, potion").eq("user_id", session.user.id).order("slot_index"),
-    AUTH_CLIENT.from("custom_texts").select("id, category, text").eq("user_id", session.user.id).order("category"),
+    AUTH_CLIENT.from("custom_texts").select("id, category, text").eq("user_id", session.user.id).order("created_at"),
   ]);
 
   await loadAlias(session);

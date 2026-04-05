@@ -30,7 +30,7 @@ function renderList(category) {
 
   list.innerHTML = items.map((text, i) => `
     <div class="flex gap-3 px-5 py-3 ${i % 2 === 0 ? '' : 'bg-surface-container/30'}">
-      <span class="font-label text-[9px] text-on-surface-variant/40 pt-0.5 w-6 shrink-0 text-right select-none">${i + 1}</span>
+      <span class="font-label text-xs text-on-surface-variant/50 w-6 shrink-0 text-center select-none">${i + 1}</span>
       <span class="text-on-surface text-sm leading-relaxed">${escapeHtml(formatCustomText(text))}</span>
     </div>
   `).join('');
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (window.supabase) {
     try {
       const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      const { data, error } = await sbClient.from('custom_texts').select('category, text');
+      const { data, error } = await sbClient.from('custom_texts').select('category, text').order('created_at');
       if (!error) {
         for (const { category, text } of data) {
           if (POTION_DATA[category]) POTION_DATA[category].push(text);
