@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="description" content="¿Qué es la PUES? La historia detrás de Minerva's Experiments."/>
+<title>La PUES — Minerva's Experiments</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#fbcb70"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Minerva"/>
+<link rel="apple-touch-icon" href="icon.svg"/>
+<link rel="icon" type="image/svg+xml" href="icon.svg"/>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@400;500&family=Work+Sans:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "on-primary-fixed-variant": "#5d4200",
+          "tertiary": "#decafb",
+          "on-tertiary": "#382950",
+          "surface-variant": "#363245",
+          "inverse-surface": "#e6dff7",
+          "secondary-container": "#5e4204",
+          "surface-container-lowest": "#0f0c1c",
+          "on-secondary-fixed": "#271900",
+          "surface-container-high": "#2b2839",
+          "primary": "#fbcb70",
+          "error": "#ffb4ab",
+          "on-secondary-fixed-variant": "#5e4204",
+          "on-error-container": "#ffdad6",
+          "on-error": "#690005",
+          "on-surface-variant": "#d2c5b2",
+          "outline-variant": "#4e4637",
+          "primary-container": "#ddb058",
+          "on-tertiary-fixed": "#221439",
+          "surface-bright": "#3a3749",
+          "secondary-fixed-dim": "#eac079",
+          "on-tertiary-fixed-variant": "#4f3f68",
+          "on-primary": "#412d00",
+          "secondary-fixed": "#ffdea9",
+          "primary-fixed-dim": "#eec066",
+          "on-secondary": "#422c00",
+          "on-primary-fixed": "#271900",
+          "on-secondary-container": "#d7af6a",
+          "inverse-primary": "#7b5801",
+          "surface": "#141122",
+          "tertiary-fixed-dim": "#d2beee",
+          "surface-container-low": "#1c192a",
+          "surface-container-highest": "#363245",
+          "error-container": "#93000a",
+          "tertiary-container": "#c1aede",
+          "tertiary-fixed": "#ecdcff",
+          "background": "#141122",
+          "inverse-on-surface": "#312e40",
+          "outline": "#9b8f7e",
+          "secondary": "#eac079",
+          "surface-tint": "#eec066",
+          "primary-fixed": "#ffdea5",
+          "on-background": "#e6dff7",
+          "surface-container": "#201d2f",
+          "on-surface": "#e6dff7",
+          "on-tertiary-container": "#4f4069",
+          "surface-dim": "#141122",
+          "on-primary-container": "#5e4300"
+        },
+        fontFamily: {
+          "headline": ["Noto Serif", "serif"],
+          "body": ["Inter", "sans-serif"],
+          "label": ["Work Sans", "sans-serif"]
+        },
+        borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+      },
+    },
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .glass-artifact {
+    backdrop-filter: blur(12px);
+    background: rgba(43, 40, 57, 0.7);
+  }
+  body {
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  main {
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+  }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary">
+
+<!-- Header -->
+<header class="sticky top-0 z-50 border-b border-outline-variant/20 bg-gradient-to-b from-surface-container-low to-surface shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
+  <div class="grid grid-cols-[1fr_auto_1fr] items-center w-full px-4 pt-4 pb-2 max-w-screen-xl mx-auto">
+    <div></div>
+    <a href="index.html" class="flex items-center gap-3 hover:opacity-80 active:opacity-60 transition-opacity">
+      <span class="material-symbols-outlined text-primary text-2xl">science</span>
+      <h1 class="text-2xl font-headline font-bold text-primary drop-shadow-[0_2px_4px_rgba(251,203,112,0.3)] tracking-tight whitespace-nowrap">Minerva's Experiments</h1>
+    </a>
+    <div></div>
+  </div>
+  <nav class="flex justify-center max-w-screen-xl mx-auto">
+    <a href="index.html" class="font-label text-[10px] uppercase tracking-widest px-5 py-2.5 border-b-2 border-transparent text-on-surface-variant/50 hover:text-on-surface transition-colors">Generador</a>
+    <a href="biblioteca.html" class="font-label text-[10px] uppercase tracking-widest px-5 py-2.5 border-b-2 border-transparent text-on-surface-variant/50 hover:text-on-surface transition-colors">Biblioteca</a>
+    <a href="taller.html" class="font-label text-[10px] uppercase tracking-widest px-5 py-2.5 border-b-2 border-transparent text-on-surface-variant/50 hover:text-on-surface transition-colors">Mi Taller</a>
+  </nav>
+</header>
+
+<main class="max-w-lg mx-auto px-4 py-10 flex flex-col gap-8 mt-4">
+
+  <!-- Title -->
+  <div class="text-center space-y-3">
+    <div class="flex items-center justify-center gap-2 text-primary">
+      <span class="material-symbols-outlined text-2xl">help</span>
+      <h2 class="font-headline text-2xl font-bold tracking-tight">¿Qué es la PUES?</h2>
+    </div>
+    <p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Pájaros Unidos Expertos en Subsistir</p>
+  </div>
+
+  <!-- Content -->
+  <div class="rounded-xl border border-outline-variant/15 glass-artifact shadow-2xl divide-y divide-outline-variant/10">
+
+    <div class="px-6 py-6 space-y-3">
+      <p class="font-label text-[10px] uppercase tracking-widest text-primary font-semibold">¿Quiénes somos?</p>
+      <p class="text-on-surface leading-relaxed">La <strong class="text-primary">PUES</strong> (Pájaros Unidos Expertos en Subsistir) ha sido nuestro mayor patrocinador en este generador de Pociones de Utilidad Experimentales y Sospechosas. Se trata de un espacio colaborativo para dar rienda a la creatividad de una buena poción aleatoria. En principio está pensada para usarse en D&amp;D pero al final un buen efecto aleatorio sazona cualquier partida de rol que se precie.</p>
+    </div>
+
+    <div class="px-6 py-6 space-y-3">
+      <p class="font-label text-[10px] uppercase tracking-widest text-primary font-semibold">¿Para qué sirve?</p>
+      <p class="text-on-surface-variant leading-relaxed">Para que cuando tu personaje se encuentre una poción misteriosa en una mazmorra, el máster no tenga que inventárselo todo en el momento. O para que sí tenga que inventárselo, pero con un punto de partida interesante.</p>
+      <p class="text-on-surface-variant leading-relaxed">El generador te da efecto principal, efecto secundario, apariencia, olor, sabor, recipiente, duración... todo lo que necesitas para que una poción tenga personalidad propia. Puedes guardar las que más te gusten en tu taller personal y añadir tus propios textos al pool.</p>
+    </div>
+
+    <div class="px-6 py-6 space-y-3">
+      <p class="font-label text-[10px] uppercase tracking-widest text-primary font-semibold">¿Quién lo ha hecho?</p>
+      <p class="text-on-surface-variant leading-relaxed">Un par de frikis con demasiado tiempo libre y demasiadas partidas de D&amp;D en el cuerpo. No somos una empresa ni nada parecido, esto es un proyecto personal, por y para la comunidad.</p>
+      <p class="text-on-surface-variant leading-relaxed">Si algo no funciona bien, seguramente lo sabemos. Si encuentras algo que podría mejorar, cuéntanoslo.</p>
+    </div>
+
+  </div>
+
+  <div class="text-center">
+    <a href="index.html" class="inline-flex items-center gap-2 font-label text-[10px] uppercase tracking-widest text-primary border border-primary/30 rounded-xl px-5 py-2.5 hover:bg-primary/10 transition-colors">
+      <span class="material-symbols-outlined" style="font-size:14px">arrow_back</span>
+      Volver al generador
+    </a>
+  </div>
+
+</main>
+
+<footer class="bg-surface-container-lowest py-6 mt-10 border-t border-outline-variant/10">
+  <p class="text-center font-label text-[10px] text-on-surface-variant/30 tracking-widest uppercase">Minerva's Experiments</p>
+</footer>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js');
+    });
+  }
+</script>
+</body>
+</html>
