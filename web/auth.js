@@ -30,5 +30,5 @@ async function authGetSession() {
 
 function authOnChange(cb) {
   if (!AUTH_CLIENT) return;
-  AUTH_CLIENT.auth.onAuthStateChange((_event, session) => cb(session));
+  AUTH_CLIENT.auth.onAuthStateChange((event, session) => cb(session, event));
 }

@@ -69,9 +69,54 @@ function renderAuthZone(session) {
   }
 }
 
+// ── Markdown export ────────────────────────────────────────────────────────────
+
+function buildPotionMarkdown(p) {
+  const qMeta     = QUALITY_LABEL[p.quality] ?? { label: p.quality };
+  const mainTitle = p.mainEffect.split(".")[0];
+  const rarity    = POTENCY_RARITY[p.potency] ?? p.potency;
+  const ft        = t => formatText(t);
+
+  const sideSection = p.isPerfect
+    ? `## Efecto Secundario\n${p.sideEffect}`
+    : p.isBad
+    ? `## Efectos Secundarios\n- ${ft(p.sideEffect)}\n- ${ft(p.sideEffect2)}`
+    : `## Efecto Secundario\n${ft(p.sideEffect)}`;
+
+  return [
+    `# ${p.title} de ${mainTitle}`,
+    ``,
+    `*${p.title} · ${rarity}*`,
+    ``,
+    `## Efecto Principal`,
+    ft(p.mainEffect),
+    ``,
+    sideSection,
+    ``,
+    `## Detalles`,
+    ``,
+    `| Campo | Valor |`,
+    `|-------|-------|`,
+    `| Recipiente | ${ft(p.container)} |`,
+    `| Etiqueta | ${ft(p.label)} |`,
+    `| Apariencia | ${ft(p.appearance)} |`,
+    `| Textura | ${ft(p.texture)} |`,
+    `| Olor | ${ft(p.smell)} |`,
+    `| Sabor | ${ft(p.taste)} |`,
+    `| Potencia | ${p.potency} |`,
+    `| Duración | ${ft(p.duration)} |`,
+    ``,
+    `## Calidad`,
+    qMeta.label,
+  ].join("\n");
+}
+
 // ── Modal ──────────────────────────────────────────────────────────────────────
 
+let _modalPotion = null;
+
 function openPotionModal(p) {
+  _modalPotion = p;
   const mainTitle = p.mainEffect.split(".")[0];
   const qMeta = QUALITY_LABEL[p.quality] ?? { pct: "0%", label: p.quality };
 
@@ -101,6 +146,10 @@ function openPotionModal(p) {
 
   document.getElementById("modal-quality-bar").style.width    = qMeta.pct;
   document.getElementById("modal-quality-label").textContent  = qMeta.label;
+
+  const exportBtn = document.getElementById("modal-export");
+  exportBtn.textContent = "Exportar MD";
+  exportBtn.disabled = false;
 
   const modal = document.getElementById("potion-modal");
   modal.classList.remove("hidden");
@@ -225,10 +274,6 @@ async function loadData(session) {
   _allTexts = texts ?? [];
   buildTextFilter();
   renderTexts("");
-
-  document.getElementById("texts-category").addEventListener("change", (e) => {
-    renderTexts(e.target.value);
-  });
 }
 
 async function init(session) {
@@ -237,13 +282,13 @@ async function init(session) {
   const tallerContent = document.getElementById("taller-content");
 
   if (!session) {
-    guestSection.removeAttribute("hidden");
-    tallerContent.setAttribute("hidden", "");
+    guestSection.style.display  = '';
+    tallerContent.style.display = 'none';
     return;
   }
 
-  guestSection.setAttribute("hidden", "");
-  tallerContent.removeAttribute("hidden");
+  guestSection.style.display  = 'none';
+  tallerContent.style.display = '';
   await loadData(session);
 }
 
@@ -253,8 +298,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (e.target === e.currentTarget) closePotionModal();
   });
 
-  // Try immediate session first; authOnChange catches token-refresh cases
+  document.getElementById("texts-category").addEventListener("change", (e) => {
+    renderTexts(e.target.value);
+  });
+
+  document.getElementById("modal-export").addEventListener("click", async () => {
+    if (!_modalPotion) return;
+    const btn = document.getElementById("modal-export");
+    try {
+      await navigator.clipboard.writeText(buildPotionMarkdown(_modalPotion));
+      btn.textContent = "¡Copiado!";
+      setTimeout(() => { btn.textContent = "Exportar MD"; }, 2000);
+    } catch {
+      btn.textContent = "Error al copiar";
+      setTimeout(() => { btn.textContent = "Exportar MD"; }, 2000);
+    }
+  });
+
+  // INITIAL_SESSION fires immediately on authOnChange registration and can
+  // race with getSession(), overriding a valid session with null. Skip it —
+  // getSession() below already handles the initial state.
+  authOnChange((newSession, event) => {
+    if (event === 'INITIAL_SESSION') return;
+    init(newSession);
+  });
+
   const session = await authGetSession();
-  authOnChange(newSession => init(newSession));
   await init(session);
 });
