@@ -31,6 +31,8 @@ const CATEGORY_NAME = {
 };
 
 let _allTexts = [];
+let _userId   = null;
+let _currentAlias = '';
 
 function escapeHtml(str) {
   return String(str)
@@ -45,6 +47,55 @@ function formatText(text) {
   if (!t) return t;
   const c = t.charAt(0).toUpperCase() + t.slice(1);
   return c.endsWith(".") ? c : c + ".";
+}
+
+// ── Alias section ─────────────────────────────────────────────────────────────
+
+function renderAlias(alias) {
+  _currentAlias = alias;
+  document.getElementById('alias-display').textContent = alias;
+}
+
+function showAliasView() {
+  document.getElementById('alias-view').style.display = '';
+  document.getElementById('alias-edit').style.display = 'none';
+}
+
+function showAliasEdit() {
+  document.getElementById('alias-input').value = _currentAlias;
+  document.getElementById('alias-view').style.display = 'none';
+  document.getElementById('alias-edit').style.display = '';
+  document.getElementById('alias-input').focus();
+}
+
+async function saveAlias() {
+  const newAlias = document.getElementById('alias-input').value.trim();
+  if (!newAlias || newAlias === _currentAlias) { showAliasView(); return; }
+
+  const saveBtn = document.getElementById('alias-save-btn');
+  saveBtn.textContent = '...';
+  saveBtn.disabled = true;
+
+  const { error } = await AUTH_CLIENT.from('profiles')
+    .update({ alias: newAlias })
+    .eq('user_id', _userId);
+
+  saveBtn.textContent = 'Guardar';
+  saveBtn.disabled = false;
+
+  if (!error) {
+    renderAlias(newAlias);
+    showAliasView();
+  }
+}
+
+async function loadAlias(session) {
+  const { data } = await AUTH_CLIENT
+    .from('profiles')
+    .select('alias')
+    .eq('user_id', session.user.id)
+    .single();
+  renderAlias(data?.alias ?? '—');
 }
 
 // ── Auth zone ──────────────────────────────────────────────────────────────────
@@ -264,11 +315,14 @@ function renderTexts(categoryFilter) {
 
 async function loadData(session) {
   if (!AUTH_CLIENT) return;
+  _userId = session.user.id;
 
   const [{ data: potions }, { data: texts }] = await Promise.all([
     AUTH_CLIENT.from("saved_potions").select("slot_index, potion").eq("user_id", session.user.id).order("slot_index"),
     AUTH_CLIENT.from("custom_texts").select("category, text").eq("user_id", session.user.id).order("category"),
   ]);
+
+  await loadAlias(session);
 
   renderSavedPotions(potions ?? []);
   _allTexts = texts ?? [];
@@ -293,6 +347,14 @@ async function init(session) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  document.getElementById("alias-edit-btn").addEventListener("click", showAliasEdit);
+  document.getElementById("alias-cancel-btn").addEventListener("click", showAliasView);
+  document.getElementById("alias-save-btn").addEventListener("click", saveAlias);
+  document.getElementById("alias-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") saveAlias();
+    if (e.key === "Escape") showAliasView();
+  });
+
   document.getElementById("modal-close").addEventListener("click", closePotionModal);
   document.getElementById("potion-modal").addEventListener("click", (e) => {
     if (e.target === e.currentTarget) closePotionModal();
