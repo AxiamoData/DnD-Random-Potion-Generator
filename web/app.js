@@ -212,6 +212,61 @@ function loadPotion(idx) {
   document.getElementById('save-btn').disabled = false;
 }
 
+function buildPotionMarkdown(p) {
+  const qMeta    = QUALITY_META[p.quality] ?? { label: p.quality };
+  const mainTitle = p.mainEffect.split('.')[0];
+  const rarity    = POTENCY_RARITY[p.potency] ?? p.potency;
+  const ft        = t => formatCustomText(t);
+
+  const sideSection = p.isPerfect
+    ? `## Efecto Secundario\n${p.sideEffect}`
+    : p.isBad
+    ? `## Efectos Secundarios\n- ${ft(p.sideEffect)}\n- ${ft(p.sideEffect2)}`
+    : `## Efecto Secundario\n${ft(p.sideEffect)}`;
+
+  return [
+    `# ${p.title} de ${mainTitle}`,
+    ``,
+    `*${p.title} · ${rarity}*`,
+    ``,
+    `## Efecto Principal`,
+    ft(p.mainEffect),
+    ``,
+    sideSection,
+    ``,
+    `## Detalles`,
+    ``,
+    `| Campo | Valor |`,
+    `|-------|-------|`,
+    `| Recipiente | ${ft(p.container)} |`,
+    `| Etiqueta | ${ft(p.label)} |`,
+    `| Apariencia | ${ft(p.appearance)} |`,
+    `| Textura | ${ft(p.texture)} |`,
+    `| Olor | ${ft(p.smell)} |`,
+    `| Sabor | ${ft(p.taste)} |`,
+    `| Potencia | ${p.potency} |`,
+    `| Duración | ${ft(p.duration)} |`,
+    ``,
+    `## Calidad`,
+    qMeta.label,
+  ].join('\n');
+}
+
+async function exportPotion(idx) {
+  const p = _slots[idx];
+  if (!p) return;
+  const btn = document.getElementById(`slot-exp-${idx}`);
+  try {
+    await navigator.clipboard.writeText(buildPotionMarkdown(p));
+    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:13px">check</span><span class="font-label text-[9px] uppercase tracking-wide">Copiado</span>`;
+    setTimeout(() => {
+      btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:13px">ios_share</span><span class="font-label text-[9px] uppercase tracking-wide">Exportar</span>`;
+    }, 2000);
+  } catch {
+    // clipboard not available
+  }
+}
+
 async function deletePotion(idx) {
   const session = await authGetSession();
   if (session && AUTH_CLIENT) {
@@ -247,6 +302,7 @@ function renderSlots() {
     if (!btn) continue;
     const p = _slots[i];
 
+    const exp = document.getElementById(`slot-exp-${i}`);
     if (p) {
       const effectLabel = p.mainEffect.split('.')[0];
       btn.className = 'slot-tile w-full flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 rounded-lg border border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95 min-h-[72px] cursor-pointer';
@@ -255,14 +311,16 @@ function renderSlots() {
         <span class="font-label text-[10px] uppercase tracking-wide opacity-60">${i + 1}</span>
         <span class="font-label text-[10px] leading-tight text-center px-0.5">${effectLabel}</span>
       `;
-      del.classList.remove('hidden');
+      del.style.display = '';
+      exp.style.display = '';
     } else {
       btn.className = 'slot-tile w-full flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-lg border border-outline-variant/15 text-on-surface-variant/30 hover:border-outline-variant/40 hover:text-on-surface-variant/50 transition-all active:scale-95 min-h-[72px] cursor-pointer';
       btn.innerHTML = `
         <span class="material-symbols-outlined text-xl">bookmark</span>
         <span class="font-label text-[10px] uppercase tracking-wide">${i + 1}</span>
       `;
-      del.classList.add('hidden');
+      del.style.display = 'none';
+      exp.style.display = 'none';
     }
   }
 }
@@ -272,11 +330,14 @@ function initSlots() {
   let html = '';
   for (let i = 0; i < NUM_SLOTS; i++) {
     html += `
-      <div class="flex flex-col gap-1">
+      <div class="relative flex flex-col gap-1">
         <button id="slot-btn-${i}" data-slot="${i}"></button>
-        <button id="slot-del-${i}" data-slot="${i}" class="hidden w-full flex items-center justify-center gap-0.5 py-1 rounded text-error/50 hover:text-error transition-all">
-          <span class="material-symbols-outlined" style="font-size:13px">delete</span>
-          <span class="font-label text-[9px] uppercase tracking-wide">Borrar</span>
+        <button id="slot-del-${i}" data-slot="${i}" style="display:none" class="absolute top-1 left-1 z-10 w-5 h-5 rounded-full bg-error flex items-center justify-center hover:bg-error/70 active:scale-90 transition-all">
+          <span class="material-symbols-outlined text-on-error" style="font-size:12px;line-height:1">close</span>
+        </button>
+        <button id="slot-exp-${i}" data-slot="${i}" style="display:none" class="w-full flex items-center justify-center gap-0.5 py-1 rounded text-on-surface-variant/50 hover:text-primary transition-all">
+          <span class="material-symbols-outlined" style="font-size:13px">ios_share</span>
+          <span class="font-label text-[9px] uppercase tracking-wide">Exportar</span>
         </button>
       </div>
     `;
@@ -286,6 +347,7 @@ function initSlots() {
   for (let i = 0; i < NUM_SLOTS; i++) {
     document.getElementById(`slot-btn-${i}`).addEventListener('click', () => loadPotion(i));
     document.getElementById(`slot-del-${i}`).addEventListener('click', () => deletePotion(i));
+    document.getElementById(`slot-exp-${i}`).addEventListener('click', () => exportPotion(i));
   }
   // NOTE: refreshSlots() is called separately after initSlots()
 }
