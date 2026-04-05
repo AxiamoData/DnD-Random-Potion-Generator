@@ -1,7 +1,6 @@
-const CACHE = 'minerva-v13';
+const CACHE = 'minerva-v14';
+// Solo assets estáticos — las páginas HTML las gestiona el navegador directamente
 const ASSETS = [
-  './',
-  './index.html',
   './app.js',
   './auth.js',
   './login.html',
@@ -9,11 +8,8 @@ const ASSETS = [
   './icon.svg',
   './icon-maskable.svg',
   './data/potion-data.js',
-  './biblioteca.html',
   './biblioteca.js',
-  './taller.html',
   './taller.js',
-  './pues.html',
 ];
 
 self.addEventListener('install', e => {
@@ -32,9 +28,10 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Cache-first para assets propios. Peticiones cross-origin (Supabase, CDNs) van directo a red.
+// Cache-first para assets estáticos propios. Navegaciones y cross-origin van directo a red.
 self.addEventListener('fetch', e => {
   if (!e.request.url.startsWith(self.location.origin)) return;
+  if (e.request.mode === 'navigate') return; // El navegador gestiona las páginas HTML
 
   e.respondWith(
     caches.match(e.request).then(cached => {
@@ -43,7 +40,7 @@ self.addEventListener('fetch', e => {
         const clone = response.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
         return response;
-      }).catch(() => new Response('Sin conexión', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }));
+      }).catch(() => {});
     })
   );
 });
