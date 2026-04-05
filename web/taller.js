@@ -262,6 +262,50 @@ function attachTextEditListeners(section) {
   section.querySelectorAll('.edit-text-btn').forEach(btn => {
     btn.addEventListener('click', () => startTextEdit(btn.closest('[data-id]')));
   });
+  section.querySelectorAll('.delete-text-btn').forEach(btn => {
+    btn.addEventListener('click', () => deleteText(btn.closest('[data-id]')));
+  });
+}
+
+async function deleteText(row) {
+  const id     = row.dataset.id;
+  const delBtn = row.querySelector('.delete-text-btn');
+
+  // First click: enter confirm state
+  if (!delBtn.dataset.confirming) {
+    delBtn.dataset.confirming = '1';
+    delBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">check</span>';
+    delBtn.classList.add('text-error');
+    const reset = setTimeout(() => {
+      delete delBtn.dataset.confirming;
+      delBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">delete</span>';
+      delBtn.classList.remove('text-error');
+    }, 2500);
+    delBtn.dataset.resetTimer = reset;
+    return;
+  }
+
+  // Second click: delete
+  clearTimeout(Number(delBtn.dataset.resetTimer));
+  delBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">hourglass_empty</span>';
+  delBtn.disabled  = true;
+
+  const { error } = await AUTH_CLIENT.from('custom_texts')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', _userId);
+
+  if (!error) {
+    _allTexts = _allTexts.filter(t => t.id !== id);
+    row.remove();
+    const currentFilter = document.getElementById('texts-category').value;
+    const visible = currentFilter ? _allTexts.filter(t => t.category === currentFilter) : _allTexts;
+    document.getElementById('texts-count').textContent = `${visible.length} texto${visible.length !== 1 ? "s" : ""}`;
+  } else {
+    delBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">delete</span>';
+    delBtn.disabled  = false;
+    delete delBtn.dataset.confirming;
+  }
 }
 
 function startTextEdit(row) {
@@ -359,6 +403,9 @@ function renderTexts(categoryFilter) {
       <span class="text-content text-on-surface text-sm leading-relaxed flex-1">${escapeHtml(formatText(t.text))}</span>
       <button class="edit-text-btn shrink-0 text-on-surface-variant/20 hover:text-primary transition-colors">
         <span class="material-symbols-outlined" style="font-size:14px">edit</span>
+      </button>
+      <button class="delete-text-btn shrink-0 text-on-surface-variant/20 hover:text-error transition-colors">
+        <span class="material-symbols-outlined" style="font-size:14px">delete</span>
       </button>
     </div>
   `;
