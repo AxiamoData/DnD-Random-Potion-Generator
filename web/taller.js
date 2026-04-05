@@ -233,7 +233,7 @@ function renderSavedPotions(rows) {
     const rarity    = escapeHtml(POTENCY_RARITY[p.potency] ?? p.potency ?? "");
     return `
       <button class="w-full text-left flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10 last:border-0 hover:bg-surface-container/50 active:bg-surface-container transition-colors" data-slot="${slot_index}">
-        <span class="font-label text-[9px] text-on-surface-variant/40 w-5 shrink-0 text-right select-none">${slot_index + 1}</span>
+        <span class="font-label text-xs text-on-surface-variant/50 w-5 shrink-0 text-center select-none">${slot_index + 1}</span>
         <div class="flex-1 space-y-1.5 min-w-0">
           <div class="font-headline text-sm text-primary leading-tight">${escapeHtml(p.title)} de ${mainTitle}</div>
           <div class="flex items-center gap-2">
@@ -253,6 +253,78 @@ function renderSavedPotions(rows) {
     btn.addEventListener("click", () => {
       openPotionModal(potionMap[parseInt(btn.dataset.slot, 10)]);
     });
+  });
+}
+
+// ── Text inline edit ──────────────────────────────────────────────────────────
+
+function attachTextEditListeners(section) {
+  section.querySelectorAll('.edit-text-btn').forEach(btn => {
+    btn.addEventListener('click', () => startTextEdit(btn.closest('[data-id]')));
+  });
+}
+
+function startTextEdit(row) {
+  const id = row.dataset.id;
+  const textSpan = row.querySelector('.text-content');
+  const editBtn  = row.querySelector('.edit-text-btn');
+  const entry    = _allTexts.find(t => t.id === id);
+  const rawText  = entry ? entry.text : textSpan.textContent;
+
+  textSpan.style.display = 'none';
+  editBtn.style.display  = 'none';
+
+  const input = document.createElement('input');
+  input.type      = 'text';
+  input.value     = rawText;
+  input.className = 'flex-1 bg-surface-container-lowest border border-outline-variant/30 rounded px-2 py-0.5 text-on-surface text-sm font-body focus:outline-none focus:border-primary/50 min-w-0';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'shrink-0 text-primary hover:text-primary/70 transition-colors';
+  saveBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">check</span>';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'shrink-0 text-on-surface-variant/40 hover:text-on-surface transition-colors';
+  cancelBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">close</span>';
+
+  row.appendChild(input);
+  row.appendChild(saveBtn);
+  row.appendChild(cancelBtn);
+  input.focus();
+  input.select();
+
+  const cancel = () => {
+    input.remove();
+    saveBtn.remove();
+    cancelBtn.remove();
+    textSpan.style.display = '';
+    editBtn.style.display  = '';
+  };
+
+  const save = async () => {
+    const newText = input.value.trim();
+    if (!newText || newText === rawText) { cancel(); return; }
+
+    saveBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">hourglass_empty</span>';
+    saveBtn.disabled  = true;
+
+    const { error } = await AUTH_CLIENT.from('custom_texts')
+      .update({ text: newText })
+      .eq('id', id)
+      .eq('user_id', _userId);
+
+    if (!error) {
+      if (entry) entry.text = newText;
+      textSpan.textContent = formatText(newText);
+    }
+    cancel();
+  };
+
+  saveBtn.addEventListener('click', save);
+  cancelBtn.addEventListener('click', cancel);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') save();
+    if (e.key === 'Escape') cancel();
   });
 }
 
@@ -281,34 +353,36 @@ function renderTexts(categoryFilter) {
     return;
   }
 
+  const rowHtml = (t, i, extraClass = '') => `
+    <div class="flex items-center gap-3 px-4 py-2.5 border-b border-outline-variant/10 last:border-0 ${i % 2 === 0 ? "" : "bg-surface-container/20"} ${extraClass}" data-id="${escapeHtml(t.id)}">
+      <span class="font-label text-xs text-on-surface-variant/50 w-5 shrink-0 text-center select-none">${i + 1}</span>
+      <span class="text-content text-on-surface text-sm leading-relaxed flex-1">${escapeHtml(formatText(t.text))}</span>
+      <button class="edit-text-btn shrink-0 text-on-surface-variant/20 hover:text-primary transition-colors">
+        <span class="material-symbols-outlined" style="font-size:14px">edit</span>
+      </button>
+    </div>
+  `;
+
   if (categoryFilter) {
-    section.innerHTML = filtered.map((t, i) => `
-      <div class="flex gap-3 px-4 py-2.5 border-b border-outline-variant/10 last:border-0 ${i % 2 === 0 ? "" : "bg-surface-container/20"}">
-        <span class="font-label text-[9px] text-on-surface-variant/30 pt-0.5 w-4 shrink-0 text-right select-none">${i + 1}</span>
-        <span class="text-on-surface text-sm leading-relaxed">${escapeHtml(formatText(t.text))}</span>
-      </div>
-    `).join("");
+    section.innerHTML = filtered.map((t, i) => rowHtml(t, i)).join("");
+    attachTextEditListeners(section);
     return;
   }
 
   const grouped = {};
-  for (const { category, text } of filtered) {
-    if (!grouped[category]) grouped[category] = [];
-    grouped[category].push(text);
+  for (const t of filtered) {
+    if (!grouped[t.category]) grouped[t.category] = [];
+    grouped[t.category].push(t);
   }
-  section.innerHTML = Object.entries(grouped).map(([cat, texts]) => `
+  section.innerHTML = Object.entries(grouped).map(([cat, items]) => `
     <div class="border-b border-outline-variant/10 last:border-0">
       <div class="px-4 py-2 bg-surface-container/40">
         <span class="font-label text-[9px] uppercase tracking-widest text-primary/60">${escapeHtml(CATEGORY_NAME[cat] ?? cat)}</span>
       </div>
-      ${texts.map((text, i) => `
-        <div class="flex gap-3 px-4 py-2.5 border-b border-outline-variant/5 last:border-0 ${i % 2 === 0 ? "" : "bg-surface-container/20"}">
-          <span class="font-label text-[9px] text-on-surface-variant/30 pt-0.5 w-4 shrink-0 text-right select-none">${i + 1}</span>
-          <span class="text-on-surface text-sm leading-relaxed">${escapeHtml(formatText(text))}</span>
-        </div>
-      `).join("")}
+      ${items.map((t, i) => rowHtml(t, i, "border-outline-variant/5")).join("")}
     </div>
   `).join("");
+  attachTextEditListeners(section);
 }
 
 // ── Data & init ────────────────────────────────────────────────────────────────
@@ -319,7 +393,7 @@ async function loadData(session) {
 
   const [{ data: potions }, { data: texts }] = await Promise.all([
     AUTH_CLIENT.from("saved_potions").select("slot_index, potion").eq("user_id", session.user.id).order("slot_index"),
-    AUTH_CLIENT.from("custom_texts").select("category, text").eq("user_id", session.user.id).order("category"),
+    AUTH_CLIENT.from("custom_texts").select("id, category, text").eq("user_id", session.user.id).order("created_at"),
   ]);
 
   await loadAlias(session);
