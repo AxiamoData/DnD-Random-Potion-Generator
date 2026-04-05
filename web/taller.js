@@ -387,10 +387,10 @@ function renderTexts(categoryFilter) {
       <span class="font-label text-xs text-on-surface-variant/50 w-5 shrink-0 text-center select-none">${i + 1}</span>
       <span class="text-content text-on-surface text-sm leading-relaxed flex-1">${escapeHtml(formatText(t.text))}</span>
       <button class="edit-text-btn shrink-0 text-on-surface-variant/20 hover:text-primary transition-colors">
-        <span class="material-symbols-outlined" style="font-size:14px">edit</span>
+        <span class="material-symbols-outlined" style="font-size:18px">edit</span>
       </button>
       <button class="delete-text-btn shrink-0 text-on-surface-variant/20 hover:text-error transition-colors">
-        <span class="material-symbols-outlined" style="font-size:14px">delete</span>
+        <span class="material-symbols-outlined" style="font-size:18px">delete</span>
       </button>
     </div>
   `;
@@ -466,7 +466,7 @@ function renderFollows() {
         ${f.active ? "Activo" : "Inactivo"}
       </button>
       <button class="unfollow-btn shrink-0 text-on-surface-variant/20 hover:text-error transition-colors" title="Dejar de seguir">
-        <span class="material-symbols-outlined" style="font-size:16px">person_remove</span>
+        <span class="material-symbols-outlined" style="font-size:20px">person_remove</span>
       </button>
     </div>
   `).join("");
