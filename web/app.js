@@ -332,7 +332,7 @@ function initSlots() {
     html += `
       <div class="relative flex flex-col gap-1">
         <button id="slot-btn-${i}" data-slot="${i}"></button>
-        <button id="slot-del-${i}" data-slot="${i}" style="display:none" class="absolute top-1 left-1 z-10 w-5 h-5 rounded-full bg-error flex items-center justify-center hover:bg-error/70 active:scale-90 transition-all">
+        <button id="slot-del-${i}" data-slot="${i}" style="display:none" class="absolute -top-2 -right-2 z-10 w-5 h-5 rounded-full bg-error flex items-center justify-center hover:bg-error/70 active:scale-90 transition-all">
           <span class="material-symbols-outlined text-on-error" style="font-size:12px;line-height:1">close</span>
         </button>
         <button id="slot-exp-${i}" data-slot="${i}" style="display:none" class="w-full flex items-center justify-center gap-0.5 py-1 rounded text-on-surface-variant/50 hover:text-primary transition-all">
