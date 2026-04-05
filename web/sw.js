@@ -1,4 +1,4 @@
-const CACHE = 'minerva-v12';
+const CACHE = 'minerva-v13';
 const ASSETS = [
   './',
   './index.html',
@@ -19,7 +19,7 @@ const ASSETS = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
-      .then(c => c.addAll(ASSETS).catch(() => {}))
+      .then(c => Promise.all(ASSETS.map(url => c.add(url).catch(() => {}))))
       .then(() => self.skipWaiting())
   );
 });
