@@ -1,4 +1,4 @@
-const CACHE = 'minerva-v9';
+const CACHE = 'minerva-v10';
 const ASSETS = [
   './',
   './index.html',

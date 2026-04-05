@@ -67,13 +67,13 @@ async function loadMarketplace() {
 
   const [profilesRes, textsRes, followsRes] = await Promise.all([
     AUTH_CLIENT.from("profiles").select("user_id, alias"),
-    AUTH_CLIENT.from("custom_texts").select("user_id"),
+    AUTH_CLIENT.from("text_counts").select("user_id, count"),
     followsQuery,
   ]);
 
   const textCountMap = {};
-  for (const { user_id } of textsRes.data ?? []) {
-    textCountMap[user_id] = (textCountMap[user_id] ?? 0) + 1;
+  for (const { user_id, count } of textsRes.data ?? []) {
+    textCountMap[user_id] = Number(count);
   }
 
   _myFollowIds = new Set((followsRes.data ?? []).map(f => f.following_id));
