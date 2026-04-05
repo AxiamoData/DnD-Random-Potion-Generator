@@ -30,9 +30,10 @@ const CATEGORY_NAME = {
   duration:      "Duración",
 };
 
-let _allTexts = [];
-let _userId   = null;
+let _allTexts     = [];
+let _userId       = null;
 let _currentAlias = '';
+let _follows      = [];
 
 function escapeHtml(str) {
   return String(str)
@@ -416,6 +417,112 @@ function renderTexts(categoryFilter) {
   attachTextEditListeners(section);
 }
 
+// ── Follows section ────────────────────────────────────────────────────────────
+
+async function loadFollows() {
+  const { data: followRows } = await AUTH_CLIENT
+    .from("follows")
+    .select("id, following_id, active")
+    .eq("follower_id", _userId)
+    .order("created_at");
+
+  if (!followRows || followRows.length === 0) {
+    _follows = [];
+    renderFollows();
+    return;
+  }
+
+  const ids = followRows.map(f => f.following_id);
+  const { data: profilesData } = await AUTH_CLIENT
+    .from("profiles")
+    .select("user_id, alias")
+    .in("user_id", ids);
+
+  const aliasMap = Object.fromEntries((profilesData ?? []).map(p => [p.user_id, p.alias]));
+  _follows = followRows.map(f => ({ ...f, alias: aliasMap[f.following_id] ?? "—" }));
+  renderFollows();
+}
+
+function renderFollows() {
+  const section = document.getElementById("follows-section");
+  const count   = document.getElementById("follows-count");
+
+  count.textContent = `${_follows.length} alquimista${_follows.length !== 1 ? "s" : ""}`;
+
+  if (_follows.length === 0) {
+    section.innerHTML = `
+      <div class="px-5 py-6 text-center space-y-2">
+        <p class="font-label text-sm text-on-surface-variant">Aún no sigues a ningún alquimista.</p>
+        <a href="biblioteca.html" class="font-label text-[10px] uppercase tracking-widest text-primary hover:opacity-80 transition-opacity">Visitar La Gran Biblioteca →</a>
+      </div>`;
+    return;
+  }
+
+  section.innerHTML = _follows.map((f, i) => `
+    <div class="flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10 last:border-0 ${i % 2 === 0 ? "" : "bg-surface-container/20"}" data-follow-id="${escapeHtml(f.id)}">
+      <span class="flex-1 font-headline text-sm text-on-surface leading-tight min-w-0 truncate">${escapeHtml(f.alias)}</span>
+      <button class="follow-active-btn shrink-0 flex items-center gap-1 font-label text-[9px] uppercase tracking-widest border rounded-lg px-2 py-1 transition-colors ${f.active ? "text-primary border-primary/30" : "text-on-surface-variant/30 border-outline-variant/20"}" data-active="${f.active ? "1" : "0"}">
+        <span class="material-symbols-outlined" style="font-size:14px">${f.active ? "toggle_on" : "toggle_off"}</span>
+        ${f.active ? "Activo" : "Inactivo"}
+      </button>
+      <button class="unfollow-btn shrink-0 text-on-surface-variant/20 hover:text-error transition-colors" title="Dejar de seguir">
+        <span class="material-symbols-outlined" style="font-size:16px">person_remove</span>
+      </button>
+    </div>
+  `).join("");
+
+  section.querySelectorAll(".follow-active-btn").forEach(btn => {
+    btn.addEventListener("click", () => toggleFollowActive(btn.closest("[data-follow-id]"), btn));
+  });
+  section.querySelectorAll(".unfollow-btn").forEach(btn => {
+    btn.addEventListener("click", () => unfollowUser(btn.closest("[data-follow-id]")));
+  });
+}
+
+async function toggleFollowActive(row, btn) {
+  const newActive = btn.dataset.active !== "1";
+  btn.disabled = true;
+  btn.style.opacity = "0.5";
+
+  const { error } = await AUTH_CLIENT.from("follows")
+    .update({ active: newActive })
+    .eq("id", row.dataset.followId)
+    .eq("follower_id", _userId);
+
+  btn.disabled = false;
+  btn.style.opacity = "";
+
+  if (!error) {
+    btn.dataset.active = newActive ? "1" : "0";
+    const entry = _follows.find(f => f.id === row.dataset.followId);
+    if (entry) entry.active = newActive;
+    btn.className = `follow-active-btn shrink-0 flex items-center gap-1 font-label text-[9px] uppercase tracking-widest border rounded-lg px-2 py-1 transition-colors ${newActive ? "text-primary border-primary/30" : "text-on-surface-variant/30 border-outline-variant/20"}`;
+    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${newActive ? "toggle_on" : "toggle_off"}</span>${newActive ? "Activo" : "Inactivo"}`;
+  }
+}
+
+async function unfollowUser(row) {
+  const unfollowBtn = row.querySelector(".unfollow-btn");
+  unfollowBtn.disabled = true;
+  unfollowBtn.style.opacity = "0.4";
+
+  const { error } = await AUTH_CLIENT.from("follows")
+    .delete()
+    .eq("id", row.dataset.followId)
+    .eq("follower_id", _userId);
+
+  if (!error) {
+    _follows = _follows.filter(f => f.id !== row.dataset.followId);
+    row.remove();
+    const count = document.getElementById("follows-count");
+    count.textContent = `${_follows.length} alquimista${_follows.length !== 1 ? "s" : ""}`;
+    if (_follows.length === 0) renderFollows();
+  } else {
+    unfollowBtn.disabled = false;
+    unfollowBtn.style.opacity = "";
+  }
+}
+
 // ── Data & init ────────────────────────────────────────────────────────────────
 
 async function loadData(session) {
@@ -427,7 +534,7 @@ async function loadData(session) {
     AUTH_CLIENT.from("custom_texts").select("id, category, text").eq("user_id", session.user.id).order("created_at"),
   ]);
 
-  await loadAlias(session);
+  await Promise.all([loadAlias(session), loadFollows()]);
 
   renderSavedPotions(potions ?? []);
   _allTexts = texts ?? [];
