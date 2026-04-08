@@ -27,6 +27,17 @@ async function submitCustomText(category, text, userId) {
 }
 
 // =====================
+// Changelog
+// =====================
+const CHANGELOG_VERSION = '2026-04-08';
+const CHANGELOG_ITEMS = [
+  'Nuevo botón para copiar la poción generada como Markdown, sin necesidad de guardarla primero.',
+  'Recuperación de contraseña: enlace "¿Olvidaste tu contraseña?" en la pantalla de acceso.',
+  'Los textos personalizados se formatean automáticamente (mayúscula inicial y punto final).',
+  'Límite de caracteres por categoría al añadir textos personalizados, con mensaje de error.',
+];
+
+// =====================
 const QUALITY_META = {
   "Tosca -- 8d4 + 8.":    { pct: "10%",  label: "Tosca" },
   "Simple -- 6d4 + 6.":   { pct: "25%",  label: "Simple" },
@@ -414,6 +425,23 @@ function updateCustomFormAuth(session) {
 // Init
 // =====================
 document.addEventListener("DOMContentLoaded", async () => {
+  const WHATS_NEW_KEY = 'minerva_whats_new_seen';
+  if (localStorage.getItem(WHATS_NEW_KEY) !== CHANGELOG_VERSION) {
+    const overlay = document.getElementById('whats-new-overlay');
+    const content = document.getElementById('whats-new-content');
+    content.innerHTML = CHANGELOG_ITEMS.map(item => `<p>• ${item}</p>`).join('');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+
+    const closeWhatsNew = () => {
+      localStorage.setItem(WHATS_NEW_KEY, CHANGELOG_VERSION);
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+    };
+    document.getElementById('whats-new-close').addEventListener('click', closeWhatsNew);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeWhatsNew(); });
+  }
+
   initSlots();
 
   if (AUTH_CLIENT) {

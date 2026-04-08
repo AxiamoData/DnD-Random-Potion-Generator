@@ -326,6 +326,23 @@
   </div>
 </div>
 
+<!-- Whats New Popup -->
+<div id="whats-new-overlay" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 bg-surface/80 backdrop-blur-sm">
+  <div class="glass-artifact border border-primary/30 rounded-xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="font-headline text-primary text-lg">Novedades</h2>
+      <button id="whats-new-close" class="text-on-surface-variant hover:text-on-surface transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div id="whats-new-content" class="font-body text-sm text-on-surface-variant space-y-2"></div>
+    <button id="whats-new-close-btn" onclick="document.getElementById('whats-new-close').click()"
+      class="w-full py-2 bg-primary/10 hover:bg-primary/20 text-primary font-label text-xs uppercase tracking-widest rounded-lg transition-colors">
+      Entendido
+    </button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="data/potion-data.js"></script>
 <script src="auth.js"></script>
