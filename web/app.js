@@ -210,6 +210,7 @@ function loadPotion(idx) {
   window._lastPotion = _slots[idx];
   renderPotion(_slots[idx]);
   document.getElementById('save-btn').disabled = false;
+  document.getElementById('copy-btn').disabled = false;
 }
 
 function buildPotionMarkdown(p) {
@@ -438,9 +439,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     window._lastPotion = p;
     renderPotion(p);
     document.getElementById('save-btn').disabled = false;
+    document.getElementById('copy-btn').disabled = false;
   });
 
   document.getElementById("save-btn").addEventListener("click", savePotion);
+
+  document.getElementById("copy-btn").addEventListener("click", async () => {
+    if (!window._lastPotion) return;
+    const btn = document.getElementById('copy-btn');
+    try {
+      await navigator.clipboard.writeText(buildPotionMarkdown(window._lastPotion));
+      btn.querySelector('.material-symbols-outlined').textContent = 'check';
+      setTimeout(() => {
+        btn.querySelector('.material-symbols-outlined').textContent = 'content_copy';
+      }, 2000);
+    } catch {
+      // portapapeles no disponible
+    }
+  });
 
   // Custom text form
   function updateCustomTextPlaceholder() {
