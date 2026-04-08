@@ -3,13 +3,19 @@
 // AUTH_CLIENT, SUPABASE_URL, SUPABASE_KEY are defined in auth.js (loaded first)
 // =====================
 
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+const ALLOWED_CATEGORIES = new Set(['mainEffects','sideEffects','containers','labels','appearance','appearance2','tasteAndSmell','textures','duration']);
+
 async function loadCustomTexts() {
   if (!AUTH_CLIENT) return;
   try {
     const { data, error } = await AUTH_CLIENT.from('custom_texts').select('category, text');
     if (error) return;
     for (const { category, text } of data) {
-      if (POTION_DATA[category]) POTION_DATA[category].push(text);
+      if (ALLOWED_CATEGORIES.has(category) && POTION_DATA[category]) POTION_DATA[category].push(text);
     }
   } catch {
     // sin conexión — datos estáticos
@@ -319,7 +325,7 @@ function renderSlots() {
       btn.innerHTML = `
         <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">bookmark_added</span>
         <span class="font-label text-[10px] uppercase tracking-wide opacity-60">${i + 1}</span>
-        <span class="font-label text-[10px] leading-tight text-center px-0.5">${effectLabel}</span>
+        <span class="font-label text-[10px] leading-tight text-center px-0.5">${escapeHtml(effectLabel)}</span>
       `;
       del.style.display = '';
       exp.style.display = '';
@@ -396,7 +402,7 @@ function renderAuthZone(session) {
   if (!zone) return;
   if (session) {
     zone.innerHTML = `
-      <span class="font-label text-[10px] text-on-surface-variant hidden sm:block truncate max-w-[130px]">${session.user.email}</span>
+      <span class="font-label text-[10px] text-on-surface-variant hidden sm:block truncate max-w-[130px]">${escapeHtml(session.user.email)}</span>
       <button id="signout-btn" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50 hover:text-error transition-colors px-2 py-1 flex items-center gap-1">
         <span class="material-symbols-outlined" style="font-size:14px">logout</span>Salir
       </button>
