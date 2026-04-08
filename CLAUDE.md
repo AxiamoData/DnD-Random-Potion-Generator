@@ -1,49 +1,42 @@
-# Project Instructions
+# Project Instructions — Minerva's Experiments
 
-> REPLACE: Customize this file for your project. Delete sections that don't apply — every line costs tokens. Code style lives in .claude/rules/code-quality.md — don't duplicate here. Run `/setupdotclaude` to auto-customize, or edit manually and delete all `> REPLACE:` blocks when done.
+Generador aleatorio de pociones para D&D. App web estática con autenticación y guardado de pociones.
 
-## Commands
+## Stack
 
-```bash
-# Build
-npm run build            # or: cargo build, go build ./..., make build
+- **Frontend**: HTML + Tailwind CSS (CDN) + vanilla JS. Sin framework, sin bundler, sin paso de build.
+- **Auth / DB**: Supabase (cliente CDN). Las credenciales van en `web/auth.js` — no las expongas en logs ni commits.
+- **Hosting**: Cloudflare Pages. Sirve la carpeta `web/`. El deploy se dispara automáticamente al hacer push a `master`.
 
-# Test
-npm test                 # run full suite
-npm test -- path/to/file # run single test file
+## Arquitectura
 
-# Lint & Format
-npm run lint             # check style
-npm run lint:fix         # auto-fix style
-npm run typecheck        # type checking
+- Todo el código de la app está en `web/`.
+- `app.js` — lógica principal: generación de pociones, slots, popup de novedades, botón copiar.
+- `auth.js` — wrapper de Supabase: `authSignIn`, `authSignUp`, `authSignOut`, `authGetSession`, `authResetPassword`.
+- `login.html` — página de acceso separada. Redirige a `index.html` si ya hay sesión.
+- `potion-data.js` — datos de pociones (dentro de `web/data/`).
 
-# Dev
-npm run dev              # start dev server
-```
+## Decisiones clave
 
-## Architecture
+- **`sbClient` (no `supabase`)**: el CDN de Supabase expone `window.supabase` globalmente; usar `let supabase` causaría colisión. La variable local se llama `sbClient`.
+- **Popup de novedades**: controlado por `CHANGELOG_VERSION` en `app.js` y `localStorage`. Al cambiar la versión, el popup vuelve a aparecer una vez. El fichero de revisión es `web/changelog.md`.
+- **`?v=FECHA` en script tags**: para forzar cache bust en móviles al hacer deploy. Actualizar junto con `CHANGELOG_VERSION`.
 
-> REPLACE: Describe non-obvious architectural decisions. Don't list files — Claude can explore.
+## Workflow de deploy
 
-- `src/` — application source
-- `src/api/` — REST endpoints (versioned: `/v1/`)
-- `src/services/` — business logic (no direct DB access from controllers)
-- `src/models/` — data models and types
+1. Claude hace los cambios y el commit.
+2. El usuario hace `git push origin master`.
+3. Cloudflare Pages despliega automáticamente.
 
-## Key Decisions
+## Workflow de novedades (popup)
 
-> REPLACE: Record WHY non-obvious choices were made. This is the most valuable section. Examples: "Auth tokens in httpOnly cookies because XSS risk", "Billing is a separate module for audit independence".
-
-## Domain Knowledge
-
-> REPLACE: Terms, abbreviations, or concepts that aren't obvious from the code. Example: "SKU" = Stock Keeping Unit, the unique product identifier from our warehouse system.
-
-## Workflow
-
-- Run typecheck after making a series of code changes
-- Prefer fixing the root cause over adding workarounds
-- When unsure about approach, use plan mode (`Shift+Tab`) before coding
+1. Actualizar `CHANGELOG_VERSION` y `CHANGELOG_ITEMS` en `app.js`.
+2. Actualizar `web/changelog.md` con el mismo contenido.
+3. Actualizar `?v=FECHA` en el `<script src="app.js?v=...">` de `index.html`.
+4. Pedir confirmación al usuario antes del commit.
 
 ## Don'ts
 
-- Don't modify generated files (`*.gen.ts`, `*.generated.*`)
+- No exponer claves de Supabase (URL ni anon key) en ningún fichero que se suba al repo.
+- No añadir frameworks ni bundlers — el proyecto es intencionalmente simple.
+- No modificar archivos generados (`*.gen.ts`, `*.generated.*`).
