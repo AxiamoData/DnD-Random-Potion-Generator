@@ -9,8 +9,6 @@
 
 - **Copiar poción**: nuevo botón junto al de guardar que copia la poción actual como Markdown al portapapeles, incluso antes de guardarla.
 - **Recuperación de contraseña**: enlace "¿Olvidaste tu contraseña?" en la pantalla de acceso que envía un email de recuperación.
-- **Formato automático de textos personalizados**: al añadir un texto, la primera letra se pone en mayúscula y se añade punto al final automáticamente.
-- **Límite de caracteres por categoría**: cada categoría tiene un máximo basado en los textos existentes; si se supera aparece un mensaje de error.
 
 ---
 

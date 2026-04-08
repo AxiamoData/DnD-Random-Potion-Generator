@@ -33,8 +33,6 @@ const CHANGELOG_VERSION = '2026-04-08';
 const CHANGELOG_ITEMS = [
   'Nuevo botón para copiar la poción generada como Markdown, sin necesidad de guardarla primero.',
   'Recuperación de contraseña: enlace "¿Olvidaste tu contraseña?" en la pantalla de acceso.',
-  'Los textos personalizados se formatean automáticamente (mayúscula inicial y punto final).',
-  'Límite de caracteres por categoría al añadir textos personalizados, con mensaje de error.',
 ];
 
 // =====================
