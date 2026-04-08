@@ -473,15 +473,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("copy-btn").addEventListener("click", async () => {
     if (!window._lastPotion) return;
     const btn = document.getElementById('copy-btn');
-    try {
-      await navigator.clipboard.writeText(buildPotionMarkdown(window._lastPotion));
-      btn.querySelector('.material-symbols-outlined').textContent = 'check';
-      setTimeout(() => {
-        btn.querySelector('.material-symbols-outlined').textContent = 'content_copy';
-      }, 2000);
-    } catch {
-      // portapapeles no disponible
+    const text = buildPotionMarkdown(window._lastPotion);
+    let ok = false;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      } catch {
+        // fallback below
+      }
     }
+
+    if (!ok) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch {
+        ok = false;
+      }
+    }
+
+    const icon = btn.querySelector('.material-symbols-outlined');
+    icon.textContent = ok ? 'check' : 'close';
+    setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
   });
 
   // Custom text form
