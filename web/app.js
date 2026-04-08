@@ -39,6 +39,7 @@ const CHANGELOG_VERSION = '2026-04-08';
 const CHANGELOG_ITEMS = [
   'Nuevo botón para copiar la poción generada como Markdown, sin necesidad de guardarla primero.',
   'Recuperación de contraseña: enlace "¿Olvidaste tu contraseña?" en la pantalla de acceso.',
+  'Buzón de sugerencias: botón flotante para enviar comentarios o ideas directamente desde la app.',
 ];
 
 // =====================

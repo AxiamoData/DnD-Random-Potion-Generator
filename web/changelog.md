@@ -9,6 +9,7 @@
 
 - **Copiar poción**: nuevo botón junto al de guardar que copia la poción actual como Markdown al portapapeles, incluso antes de guardarla.
 - **Recuperación de contraseña**: enlace "¿Olvidaste tu contraseña?" en la pantalla de acceso que envía un email de recuperación.
+- **Buzón de sugerencias**: botón flotante en la esquina inferior derecha para enviar comentarios o ideas directamente desde la app.
 
 ---
 
