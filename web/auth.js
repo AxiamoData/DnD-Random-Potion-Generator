@@ -17,6 +17,10 @@ async function authSignUp(email, password) {
   return AUTH_CLIENT.auth.signUp({ email, password });
 }
 
+async function authResetPassword(email) {
+  return AUTH_CLIENT.auth.resetPasswordForEmail(email);
+}
+
 async function authSignOut() {
   if (AUTH_CLIENT) await AUTH_CLIENT.auth.signOut();
   window.location.href = 'login.html';

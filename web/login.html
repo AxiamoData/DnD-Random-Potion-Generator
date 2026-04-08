@@ -149,6 +149,12 @@
           placeholder="••••••••"/>
       </div>
 
+      <div id="forgot-link-wrap" class="text-right -mt-2">
+        <button type="button" id="forgot-link" class="font-label text-[11px] text-on-surface-variant/50 hover:text-on-surface-variant transition-colors">
+          ¿Olvidaste tu contraseña?
+        </button>
+      </div>
+
       <p id="auth-error" hidden class="font-label text-xs text-error text-center py-1"></p>
       <p id="auth-success" hidden class="font-label text-xs text-primary text-center py-1"></p>
 
@@ -176,16 +182,30 @@
   const submitBtn   = document.getElementById('auth-submit');
   const errorEl     = document.getElementById('auth-error');
   const successEl   = document.getElementById('auth-success');
-  let isRegister    = false;
+  let isRegister = false;
+  let isForgot   = false;
+
+  const forgotLinkWrap = document.getElementById('forgot-link-wrap');
+  const passwordWrap   = document.getElementById('auth-password').closest('.space-y-1\\.5');
 
   function setTab(register) {
     isRegister = register;
+    if (isForgot) setForgot(false);
     confirmWrap.toggleAttribute('hidden', !register);
+    forgotLinkWrap.toggleAttribute('hidden', register);
     submitBtn.textContent = register ? 'Crear cuenta' : 'Entrar';
     document.getElementById('auth-password').autocomplete = register ? 'new-password' : 'current-password';
 
     tabLogin.className    = `flex-1 py-3 font-label text-[11px] uppercase tracking-widest transition-colors border-b-2 ${register ? 'text-on-surface-variant/50 hover:text-on-surface-variant border-transparent' : 'text-primary border-primary'}`;
     tabRegister.className = `flex-1 py-3 font-label text-[11px] uppercase tracking-widest transition-colors border-b-2 ${register ? 'text-primary border-primary' : 'text-on-surface-variant/50 hover:text-on-surface-variant border-transparent'}`;
+    clearMessages();
+  }
+
+  function setForgot(active) {
+    isForgot = active;
+    passwordWrap.toggleAttribute('hidden', active);
+    forgotLinkWrap.toggleAttribute('hidden', active);
+    submitBtn.textContent = active ? 'Enviar enlace' : 'Entrar';
     clearMessages();
   }
 
@@ -209,6 +229,8 @@
   tabLogin.addEventListener('click',    () => setTab(false));
   tabRegister.addEventListener('click', () => setTab(true));
 
+  document.getElementById('forgot-link').addEventListener('click', () => setForgot(true));
+
   document.getElementById('auth-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     clearMessages();
@@ -225,6 +247,18 @@
     }
 
     submitBtn.disabled = true;
+
+    if (isForgot) {
+      const { error } = await authResetPassword(email);
+      if (error) {
+        showError('No se pudo enviar el enlace. Comprueba el email.');
+      } else {
+        showSuccess('Enlace enviado. Revisa tu correo para restablecer la contraseña.');
+        setForgot(false);
+      }
+      submitBtn.disabled = false;
+      return;
+    }
 
     if (isRegister) {
       const { error } = await authSignUp(email, password);
