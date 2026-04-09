@@ -197,6 +197,12 @@ async function refreshSlots() {
   renderSlots();
 }
 
+function setSaveBtnIcon(saved) {
+  const icon = document.getElementById('save-btn').querySelector('.material-symbols-outlined');
+  icon.textContent = saved ? 'bookmark_added' : 'bookmark_add';
+  icon.style.fontVariationSettings = saved ? "'FILL' 1" : '';
+}
+
 async function savePotion() {
   if (!window._lastPotion) return;
   const idx = _slots.findIndex(s => s === null);
@@ -219,6 +225,7 @@ async function savePotion() {
 
   await refreshSlots();
   showSavePopup(idx, window._lastPotion);
+  setSaveBtnIcon(true);
 }
 
 function loadPotion(idx) {
@@ -227,6 +234,7 @@ function loadPotion(idx) {
   renderPotion(_slots[idx]);
   document.getElementById('save-btn').disabled = false;
   document.getElementById('copy-btn').disabled = false;
+  setSaveBtnIcon(true);
 }
 
 function buildPotionMarkdown(p) {
@@ -473,6 +481,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderPotion(p);
     document.getElementById('save-btn').disabled = false;
     document.getElementById('copy-btn').disabled = false;
+    setSaveBtnIcon(false);
   });
 
   document.getElementById("save-btn").addEventListener("click", savePotion);
