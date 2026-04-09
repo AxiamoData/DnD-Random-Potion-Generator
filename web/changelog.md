@@ -13,4 +13,9 @@
 
 ---
 
-<!-- Para la próxima versión: añadir aquí los cambios nuevos y actualizar CHANGELOG_VERSION en app.js -->
+## v2026-04-09 — Mejoras visuales
+
+- **Icono de guardado**: el botón de guardar ahora muestra el icono relleno mientras se está viendo una poción guardada, y vuelve al icono normal al generar una nueva.
+- **Añadir texto en Mi Taller**: el formulario para contribuir textos personalizados se ha movido a Mi Taller, justo debajo del alias.
+
+<!-- Seguir añadiendo cambios aquí antes del push -->

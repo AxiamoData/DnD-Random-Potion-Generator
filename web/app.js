@@ -22,16 +22,6 @@ async function loadCustomTexts() {
   }
 }
 
-async function submitCustomText(category, text, userId) {
-  if (!AUTH_CLIENT) return false;
-  try {
-    const { error } = await AUTH_CLIENT.from('custom_texts').insert({ category, text, user_id: userId });
-    return !error;
-  } catch {
-    return false;
-  }
-}
-
 // =====================
 // Changelog
 // =====================
@@ -60,25 +50,6 @@ const POTENCY_RARITY = {
   "Superior -- 8d4 + 8.":  "Artefacto Muy Raro",
   "Suprema -- 10d4 + 20.": "Artefacto Legendario",
 };
-
-const MAX_CHARS = {
-  mainEffects:  140,
-  sideEffects:   70,
-  containers:    60,
-  labels:        90,
-  appearance:    20,
-  appearance2:   40,
-  tasteAndSmell: 40,
-  textures:      30,
-  duration:      20,
-};
-
-function formatCustomText(text) {
-  const trimmed = text.trim();
-  if (!trimmed) return trimmed;
-  const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
-  return capitalized.endsWith('.') ? capitalized : capitalized + '.';
-}
 
 function randomFrom(array) {
   return array[Math.floor(Math.random() * array.length)];
@@ -426,14 +397,6 @@ function renderAuthZone(session) {
   }
 }
 
-function updateCustomFormAuth(session) {
-  const prompt = document.getElementById('custom-text-auth-prompt');
-  const fields = document.getElementById('custom-text-form-fields');
-  if (!prompt || !fields) return;
-  prompt.toggleAttribute('hidden', !!session);
-  fields.toggleAttribute('hidden', !session);
-}
-
 // =====================
 // Init
 // =====================
@@ -462,12 +425,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const session = await authGetSession();
     renderAuthZone(session);
-    updateCustomFormAuth(session);
     if (session) await migrateLocalSlots(session.user.id);
 
     authOnChange(async (session) => {
       renderAuthZone(session);
-      updateCustomFormAuth(session);
       if (session) await migrateLocalSlots(session.user.id);
       await refreshSlots();
     });
@@ -522,93 +483,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
   });
 
-  // Custom text form
-  function updateCustomTextPlaceholder() {
-    const category = document.getElementById("custom-category").value;
-    const examples = POTION_DATA[category];
-    const input = document.getElementById("custom-text-input");
-    if (examples && examples.length > 0) {
-      input.placeholder = `Ej: ${randomFrom(examples)}`;
-    }
-  }
-
-  function updateCharCounter() {
-    const category = document.getElementById("custom-category").value;
-    const input = document.getElementById("custom-text-input");
-    const counter = document.getElementById("custom-text-counter");
-    const ring = document.getElementById("custom-text-counter-ring");
-    const max = MAX_CHARS[category] ?? 100;
-    const used = input.value.length;
-    const remaining = max - used;
-    const circumference = 75.40;
-
-    ring.style.strokeDashoffset = circumference * (1 - used / max);
-    counter.textContent = remaining;
-
-    const ratio = remaining / max;
-    const color = ratio <= 0.07 ? "#ffb4ab" : ratio <= 0.2 ? "#eac079" : "#d2c5b2";
-    ring.style.stroke = color;
-    counter.style.fill = color;
-  }
-
-  updateCustomTextPlaceholder();
-  updateCharCounter();
-
-  document.getElementById("custom-category").addEventListener("change", () => {
-    updateCustomTextPlaceholder();
-    updateCharCounter();
-  });
-
-  document.getElementById("custom-text-input").addEventListener("input", updateCharCounter);
-
-  document.getElementById("custom-text-toggle").addEventListener("click", () => {
-    const form = document.getElementById("custom-text-form");
-    const chevron = document.getElementById("custom-text-chevron");
-    const isHidden = form.hasAttribute("hidden");
-    form.toggleAttribute("hidden", !isHidden);
-    chevron.style.transform = isHidden ? "rotate(180deg)" : "";
-  });
-
-  document.getElementById("custom-text-submit").addEventListener("click", async () => {
-    const session = await authGetSession();
-    if (!session) return;
-
-    const category = document.getElementById("custom-category").value;
-    const rawText = document.getElementById("custom-text-input").value;
-    const feedback = document.getElementById("custom-text-feedback");
-    const submitBtn = document.getElementById("custom-text-submit");
-
-    if (!rawText.trim()) return;
-
-    const text = rawText.trim();
-    const maxLen = MAX_CHARS[category] ?? 100;
-
-    if (text.length > maxLen) {
-      feedback.textContent = `Texto demasiado largo. Máximo ${maxLen} caracteres (tienes ${text.length}).`;
-      feedback.className = "font-label text-sm text-center text-error";
-      setTimeout(() => { feedback.textContent = ""; }, 4000);
-      return;
-    }
-
-    submitBtn.disabled = true;
-    feedback.textContent = "Guardando...";
-    feedback.className = "font-label text-[11px] text-center text-on-surface-variant";
-
-    const ok = await submitCustomText(category, text, session.user.id);
-
-    if (ok) {
-      POTION_DATA[category].push(text);
-      document.getElementById("custom-text-input").value = "";
-      feedback.textContent = "¡Texto añadido! Aparecerá en futuras pociones.";
-      feedback.className = "font-label text-[11px] text-center text-primary";
-    } else {
-      feedback.textContent = "Error al guardar. Inténtalo de nuevo.";
-      feedback.className = "font-label text-[11px] text-center text-error";
-    }
-
-    submitBtn.disabled = false;
-    setTimeout(() => { feedback.textContent = ""; }, 3000);
-  });
 
   // Feedback / suggestion box
   const feedbackOverlay = document.getElementById('feedback-overlay');

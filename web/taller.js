@@ -1,22 +1,20 @@
 // AUTH_CLIENT, authGetSession, authSignOut, authOnChange defined in auth.js (loaded first)
 
-const QUALITY_LABEL = {
-  "Tosca -- 8d4 + 8.":     { pct: "10%",  label: "Tosca" },
-  "Simple -- 6d4 + 6.":    { pct: "25%",  label: "Simple" },
-  "Refinada -- 4d4 + 4.":  { pct: "45%",  label: "Refinada" },
-  "Pura -- 2d4 + 2.":      { pct: "65%",  label: "Pura" },
-  "Exquisita -- 1d4 + 1.": { pct: "85%",  label: "Exquisita" },
-  "Perfecta.":              { pct: "100%", label: "Perfecta ✦" },
+const MAX_CHARS = {
+  mainEffects:  140,
+  sideEffects:   70,
+  containers:    60,
+  labels:        90,
+  appearance:    20,
+  appearance2:   40,
+  tasteAndSmell: 40,
+  textures:      30,
+  duration:      20,
 };
 
-const POTENCY_RARITY = {
-  "Menor -- 1d4 + 1.":     "Artefacto Común",
-  "Común -- 2d4 + 2.":     "Artefacto Poco Común",
-  "Mayor -- 4d4 + 4.":     "Artefacto Inusual",
-  "Poderosa -- 6d4 + 6.":  "Artefacto Raro",
-  "Superior -- 8d4 + 8.":  "Artefacto Muy Raro",
-  "Suprema -- 10d4 + 20.": "Artefacto Legendario",
-};
+function randomFrom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 const CATEGORY_NAME = {
   mainEffects:   "Efecto Principal",
@@ -121,139 +119,91 @@ function renderAuthZone(session) {
   }
 }
 
-// ── Markdown export ────────────────────────────────────────────────────────────
+// ── Custom text form ──────────────────────────────────────────────────────────
 
-function buildPotionMarkdown(p) {
-  const qMeta     = QUALITY_LABEL[p.quality] ?? { label: p.quality };
-  const mainTitle = p.mainEffect.split(".")[0];
-  const rarity    = POTENCY_RARITY[p.potency] ?? p.potency;
-  const ft        = t => formatText(t);
-
-  const sideSection = p.isPerfect
-    ? `## Efecto Secundario\n${p.sideEffect}`
-    : p.isBad
-    ? `## Efectos Secundarios\n- ${ft(p.sideEffect)}\n- ${ft(p.sideEffect2)}`
-    : `## Efecto Secundario\n${ft(p.sideEffect)}`;
-
-  return [
-    `# ${p.title} de ${mainTitle}`,
-    ``,
-    `*${p.title} · ${rarity}*`,
-    ``,
-    `## Efecto Principal`,
-    ft(p.mainEffect),
-    ``,
-    sideSection,
-    ``,
-    `## Detalles`,
-    ``,
-    `| Campo | Valor |`,
-    `|-------|-------|`,
-    `| Recipiente | ${ft(p.container)} |`,
-    `| Etiqueta | ${ft(p.label)} |`,
-    `| Apariencia | ${ft(p.appearance)} |`,
-    `| Textura | ${ft(p.texture)} |`,
-    `| Olor | ${ft(p.smell)} |`,
-    `| Sabor | ${ft(p.taste)} |`,
-    `| Potencia | ${p.potency} |`,
-    `| Duración | ${ft(p.duration)} |`,
-    ``,
-    `## Calidad`,
-    qMeta.label,
-  ].join("\n");
-}
-
-// ── Modal ──────────────────────────────────────────────────────────────────────
-
-let _modalPotion = null;
-
-function openPotionModal(p) {
-  _modalPotion = p;
-  const mainTitle = p.mainEffect.split(".")[0];
-  const qMeta = QUALITY_LABEL[p.quality] ?? { pct: "0%", label: p.quality };
-
-  document.getElementById("modal-title").textContent    = `${p.title} de ${mainTitle}`;
-  document.getElementById("modal-subtitle").textContent = `${p.title} · ${POTENCY_RARITY[p.potency] ?? "Artefacto"}`;
-  document.getElementById("modal-main-effect").textContent = formatText(p.mainEffect);
-
-  document.getElementById("modal-side-label").textContent   = p.isBad ? "Efectos Secundarios" : "Efecto Secundario";
-  document.getElementById("modal-side-effect").textContent  = p.isPerfect ? p.sideEffect : formatText(p.sideEffect);
-
-  const side2El = document.getElementById("modal-side-effect-2");
-  if (p.sideEffect2) {
-    side2El.textContent = formatText(p.sideEffect2);
-    side2El.removeAttribute("hidden");
-  } else {
-    side2El.setAttribute("hidden", "");
+function updateCustomTextPlaceholder() {
+  const category = document.getElementById('custom-category').value;
+  const examples = window.POTION_DATA?.[category];
+  const input = document.getElementById('custom-text-input');
+  if (examples && examples.length > 0) {
+    input.placeholder = `Ej: ${randomFrom(examples)}`;
   }
-
-  document.getElementById("modal-container").textContent  = formatText(p.container);
-  document.getElementById("modal-label").textContent      = formatText(p.label);
-  document.getElementById("modal-appearance").textContent = formatText(p.appearance);
-  document.getElementById("modal-texture").textContent    = formatText(p.texture);
-  document.getElementById("modal-smell").textContent      = formatText(p.smell);
-  document.getElementById("modal-taste").textContent      = formatText(p.taste);
-  document.getElementById("modal-potency").textContent    = p.potency;
-  document.getElementById("modal-duration").textContent   = formatText(p.duration);
-
-  document.getElementById("modal-quality-bar").style.width    = qMeta.pct;
-  document.getElementById("modal-quality-label").textContent  = qMeta.label;
-
-  const exportBtn = document.getElementById("modal-export");
-  exportBtn.textContent = "Exportar MD";
-  exportBtn.disabled = false;
-
-  const modal = document.getElementById("potion-modal");
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
 }
 
-function closePotionModal() {
-  const modal = document.getElementById("potion-modal");
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
+function updateCharCounter() {
+  const category = document.getElementById('custom-category').value;
+  const input    = document.getElementById('custom-text-input');
+  const counter  = document.getElementById('custom-text-counter');
+  const ring     = document.getElementById('custom-text-counter-ring');
+  const max      = MAX_CHARS[category] ?? 100;
+  const used     = input.value.length;
+  const remaining = max - used;
+  const circumference = 75.40;
+
+  ring.style.strokeDashoffset = circumference * (1 - used / max);
+  counter.textContent = remaining;
+
+  const ratio = remaining / max;
+  const color = ratio <= 0.07 ? '#ffb4ab' : ratio <= 0.2 ? '#eac079' : '#d2c5b2';
+  ring.style.stroke  = color;
+  counter.style.fill = color;
 }
 
-// ── Potions section ────────────────────────────────────────────────────────────
+function initCustomTextForm() {
+  updateCustomTextPlaceholder();
+  updateCharCounter();
 
-function renderSavedPotions(rows) {
-  const section = document.getElementById("potions-section");
-  const count   = document.getElementById("potions-count");
-  count.textContent = `${rows.length} poción${rows.length !== 1 ? "es" : ""}`;
+  document.getElementById('custom-category').addEventListener('change', () => {
+    updateCustomTextPlaceholder();
+    updateCharCounter();
+  });
 
-  if (rows.length === 0) {
-    section.innerHTML = `<p class="px-5 py-6 text-center font-label text-sm text-on-surface-variant">No tienes pociones guardadas.</p>`;
-    return;
-  }
+  document.getElementById('custom-text-input').addEventListener('input', updateCharCounter);
 
-  const potionMap = {};
-  section.innerHTML = rows.map(({ slot_index, potion: p }) => {
-    potionMap[slot_index] = p;
-    const qMeta     = QUALITY_LABEL[p.quality] ?? { pct: "0%", label: p.quality };
-    const mainTitle = escapeHtml(p.mainEffect.split(".")[0]);
-    const rarity    = escapeHtml(POTENCY_RARITY[p.potency] ?? p.potency ?? "");
-    return `
-      <button class="w-full text-left flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10 last:border-0 hover:bg-surface-container/50 active:bg-surface-container transition-colors" data-slot="${slot_index}">
-        <span class="font-label text-xs text-on-surface-variant/50 w-5 shrink-0 text-center select-none">${slot_index + 1}</span>
-        <div class="flex-1 space-y-1.5 min-w-0">
-          <div class="font-headline text-sm text-primary leading-tight">${escapeHtml(p.title)} de ${mainTitle}</div>
-          <div class="flex items-center gap-2">
-            <span class="font-label text-[9px] uppercase tracking-widest text-on-surface-variant/60">${escapeHtml(qMeta.label)}</span>
-            <div class="h-1 rounded-full bg-outline-variant/20 w-12 shrink-0">
-              <div class="h-1 rounded-full bg-primary/50" style="width:${qMeta.pct}"></div>
-            </div>
-            <span class="font-label text-[9px] text-on-surface-variant/40 truncate">${rarity}</span>
-          </div>
-        </div>
-        <span class="material-symbols-outlined text-on-surface-variant/30 shrink-0" style="font-size:16px">chevron_right</span>
-      </button>
-    `;
-  }).join("");
+  document.getElementById('custom-text-submit').addEventListener('click', async () => {
+    const session = await authGetSession();
+    if (!session) return;
 
-  section.querySelectorAll("button[data-slot]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      openPotionModal(potionMap[parseInt(btn.dataset.slot, 10)]);
-    });
+    const category  = document.getElementById('custom-category').value;
+    const rawText   = document.getElementById('custom-text-input').value;
+    const feedback  = document.getElementById('custom-text-feedback');
+    const submitBtn = document.getElementById('custom-text-submit');
+
+    if (!rawText.trim()) return;
+
+    const text   = rawText.trim();
+    const maxLen = MAX_CHARS[category] ?? 100;
+
+    if (text.length > maxLen) {
+      feedback.textContent = `Texto demasiado largo. Máximo ${maxLen} caracteres (tienes ${text.length}).`;
+      feedback.className = 'font-label text-sm text-center text-error';
+      setTimeout(() => { feedback.textContent = ''; }, 4000);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    feedback.textContent = 'Guardando...';
+    feedback.className = 'font-label text-[11px] text-center text-on-surface-variant';
+
+    const { data, error } = await AUTH_CLIENT.from('custom_texts')
+      .insert({ category, text, user_id: _userId })
+      .select('id, category, text')
+      .single();
+
+    if (!error && data) {
+      _allTexts.push(data);
+      buildTextFilter();
+      renderTexts(document.getElementById('texts-category').value);
+      document.getElementById('custom-text-input').value = '';
+      feedback.textContent = '¡Texto añadido!';
+      feedback.className = 'font-label text-[11px] text-center text-primary';
+    } else {
+      feedback.textContent = 'Error al guardar. Inténtalo de nuevo.';
+      feedback.className = 'font-label text-[11px] text-center text-error';
+    }
+
+    submitBtn.disabled = false;
+    setTimeout(() => { feedback.textContent = ''; }, 3000);
   });
 }
 
@@ -529,17 +479,18 @@ async function loadData(session) {
   if (!AUTH_CLIENT) return;
   _userId = session.user.id;
 
-  const [{ data: potions }, { data: texts }] = await Promise.all([
-    AUTH_CLIENT.from("saved_potions").select("slot_index, potion").eq("user_id", session.user.id).order("slot_index"),
-    AUTH_CLIENT.from("custom_texts").select("id, category, text").eq("user_id", session.user.id).order("created_at"),
-  ]);
+  const { data: texts } = await AUTH_CLIENT
+    .from("custom_texts")
+    .select("id, category, text")
+    .eq("user_id", session.user.id)
+    .order("created_at");
 
   await Promise.all([loadAlias(session), loadFollows()]);
 
-  renderSavedPotions(potions ?? []);
   _allTexts = texts ?? [];
   buildTextFilter();
   renderTexts("");
+  initCustomTextForm();
 }
 
 async function init(session) {
@@ -567,26 +518,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (e.key === "Escape") showAliasView();
   });
 
-  document.getElementById("modal-close").addEventListener("click", closePotionModal);
-  document.getElementById("potion-modal").addEventListener("click", (e) => {
-    if (e.target === e.currentTarget) closePotionModal();
-  });
-
   document.getElementById("texts-category").addEventListener("change", (e) => {
     renderTexts(e.target.value);
-  });
-
-  document.getElementById("modal-export").addEventListener("click", async () => {
-    if (!_modalPotion) return;
-    const btn = document.getElementById("modal-export");
-    try {
-      await navigator.clipboard.writeText(buildPotionMarkdown(_modalPotion));
-      btn.textContent = "¡Copiado!";
-      setTimeout(() => { btn.textContent = "Exportar MD"; }, 2000);
-    } catch {
-      btn.textContent = "Error al copiar";
-      setTimeout(() => { btn.textContent = "Exportar MD"; }, 2000);
-    }
   });
 
   // INITIAL_SESSION fires immediately on authOnChange registration and can
