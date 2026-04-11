@@ -30,6 +30,7 @@ const CHANGELOG_ITEMS = [
   'Animación del frasco: el líquido interior se mueve con un oleaje continuo.',
   'Botones de Mi Taller: alias aleatorio con icono de dado 3D; botones solo-icono sin texto.',
   'Onboarding: los visitantes sin sesión ven un modal de bienvenida la primera vez que entran.',
+  'Iniciar sesión con Google: nuevo botón en la pantalla de acceso para entrar con tu cuenta de Google.',
 ];
 
 // =====================

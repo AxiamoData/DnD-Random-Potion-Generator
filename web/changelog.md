@@ -19,6 +19,7 @@
 - **Reorganizar lista de guardadas**: Se elimina la lista de guardads de Mi taller, se mantiene solo en la página principal y se podrá acceder sin generar poción previamente.
 - **Rediseño visual**: Modificaión de varios iconos y aspectos visuales.
 - **Randomizar alias**: Nuevo botón para cambiar tu nombre por defecto entre las diferentes opciones.
-- **Corregir errores**: Corrección de bugs y errores internos varios. 
+- **Iniciar sesión con Google**: nuevo botón en la pantalla de acceso para entrar directamente con tu cuenta de Google.
+- **Corregir errores**: Corrección de bugs y errores internos varios.
 
 <!-- Seguir añadiendo cambios aquí antes del push -->
