@@ -628,7 +628,7 @@ function initTextToggle(btnId, storageKey) {
 
   function render(active) {
     btn.dataset.active = active ? '1' : '0';
-    btn.className = `shrink-0 flex items-center gap-1 font-label text-[9px] uppercase tracking-widest border rounded-lg px-2 py-1 transition-colors ${active ? 'text-primary border-primary/30' : 'text-on-surface-variant/30 border-outline-variant/20'}`;
+    btn.className = `shrink-0 flex items-center gap-1 font-label text-[9px] uppercase tracking-widest border rounded-lg px-2 py-1 transition-colors ${active ? 'text-primary border-primary/30' : 'text-on-surface-variant/50 border-outline-variant/30'}`;
     btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${active ? 'toggle_on' : 'toggle_off'}</span>${active ? 'Activo' : 'Inactivo'}`;
   }
 

@@ -102,8 +102,9 @@ async function loadMarketplace() {
 
   _myFollowIds = new Set((followsRes.data ?? []).map(f => f.following_id));
 
+  const myId = _session?.user?.id ?? null;
   _profiles = (profilesRes.data ?? [])
-    .filter(p => (textCountMap[p.user_id] ?? 0) > 0)
+    .filter(p => (textCountMap[p.user_id] ?? 0) > 0 || p.user_id === myId)
     .map(p => ({ ...p, textCount: textCountMap[p.user_id] ?? 0 }))
     .sort((a, b) => a.alias.localeCompare(b.alias));
 
