@@ -9,13 +9,27 @@ function escapeHtml(str) {
 
 const ALLOWED_CATEGORIES = new Set(['mainEffects','sideEffects','containers','labels','appearance','appearance2','tasteAndSmell','textures','duration']);
 
+// Snapshot inmutable de los textos base, antes de mezclar custom texts
+const POTION_BASE_DATA = {};
+for (const cat of ALLOWED_CATEGORIES) {
+  POTION_BASE_DATA[cat] = [...POTION_DATA[cat]];
+}
+
 async function loadCustomTexts() {
   if (!AUTH_CLIENT) return;
+  const useBase = localStorage.getItem('minerva_use_base_texts') !== 'false';
+  const useOwn  = localStorage.getItem('minerva_use_own_texts')  !== 'false';
+  for (const cat of ALLOWED_CATEGORIES) {
+    POTION_DATA[cat] = useBase ? [...POTION_BASE_DATA[cat]] : [];
+  }
   try {
-    const { data, error } = await AUTH_CLIENT.from('custom_texts').select('category, text');
+    const { data, error } = await AUTH_CLIENT.from('custom_texts').select('category, text, user_id');
     if (error) return;
-    for (const { category, text } of data) {
-      if (ALLOWED_CATEGORIES.has(category) && POTION_DATA[category]) POTION_DATA[category].push(text);
+    const myId = (await AUTH_CLIENT.auth.getUser()).data?.user?.id ?? null;
+    for (const { category, text, user_id } of data) {
+      if (!ALLOWED_CATEGORIES.has(category) || !POTION_DATA[category]) continue;
+      if (!useOwn && user_id === myId) continue;
+      POTION_DATA[category].push(text);
     }
   } catch {
     // sin conexión — datos estáticos
@@ -27,8 +41,9 @@ async function loadCustomTexts() {
 // =====================
 const CHANGELOG_VERSION = '2026-04-11';
 const CHANGELOG_ITEMS = [
-  'Añadir texto en Mi Taller: el formulario para contribuir textos personalizados se ha movido a Mi Taller, justo debajo del alias.',
+  'Textos personalizados: el formulario para contribuir textos se ha movido a Mi Taller. Además podrás decidir si tus textos o los textos base aparecen en las generaciones.',
   'Reorganizar guardadas: la lista de pociones guardadas desaparece de Mi Taller y se mantiene solo en la página principal.',
+  'Estoy en la Biblioteca: ahora te verás en la biblioteca tal y como el resto lo hará.',
   'Rediseño visual: modificación de varios iconos y aspectos visuales.',
   'Randomizar alias: nuevo botón de dado para cambiar tu nombre entre las diferentes opciones.',
   'Iniciar sesión con Google: nuevo botón en la pantalla de acceso para entrar con tu cuenta de Google.',
@@ -58,30 +73,39 @@ function randomFrom(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
+// Si el pool de una categoría quedó vacío (textos base desactivados, sin custom texts),
+// cae sobre los textos base de esa categoría concreta para no romper la generación.
+function safeRandom(cat) {
+  return POTION_DATA[cat].length
+    ? randomFrom(POTION_DATA[cat])
+    : randomFrom(POTION_BASE_DATA[cat]);
+}
+
 function generatePotion() {
   const quality = randomFrom(POTION_DATA.quality);
   const isPerfect = quality === "Perfecta.";
   const isBad = quality === "Tosca -- 8d4 + 8.";
+  const pool = POTION_DATA.sideEffects.length ? POTION_DATA.sideEffects : POTION_BASE_DATA.sideEffects;
   const sideEffect = isPerfect
     ? "¡Las pociones perfectas no tienen efectos secundarios!"
-    : randomFrom(POTION_DATA.sideEffects);
+    : safeRandom('sideEffects');
   const sideEffect2 = isBad
-    ? randomFrom(POTION_DATA.sideEffects.filter(s => s !== sideEffect))
+    ? randomFrom(pool.filter(s => s !== sideEffect))
     : null;
   return {
     title:      randomFrom(POTION_DATA.titles),
-    mainEffect: randomFrom(POTION_DATA.mainEffects),
+    mainEffect: safeRandom('mainEffects'),
     sideEffect,
     sideEffect2,
-    container:  randomFrom(POTION_DATA.containers),
-    label:      randomFrom(POTION_DATA.labels),
-    appearance: randomFrom(POTION_DATA.appearance) + " con " + randomFrom(POTION_DATA.appearance2),
-    taste:      randomFrom(POTION_DATA.tasteAndSmell),
-    smell:      randomFrom(POTION_DATA.tasteAndSmell),
-    texture:    randomFrom(POTION_DATA.textures),
+    container:  safeRandom('containers'),
+    label:      safeRandom('labels'),
+    appearance: safeRandom('appearance') + " con " + safeRandom('appearance2'),
+    taste:      safeRandom('tasteAndSmell'),
+    smell:      safeRandom('tasteAndSmell'),
+    texture:    safeRandom('textures'),
     potency:    randomFrom(POTION_DATA.potency),
     quality,
-    duration:   randomFrom(POTION_DATA.duration),
+    duration:   safeRandom('duration'),
     isPerfect,
     isBad,
   };
@@ -106,12 +130,14 @@ function renderPotion(p) {
   document.getElementById("potion-main-effect").textContent = mainEffect;
 
   const sideRow = document.getElementById('side-effect-row');
-  sideRow.querySelector('label').textContent = p.isBad ? 'Efectos Secundarios' : 'Efecto Secundario';
+  const sideLabel = sideRow.querySelector('label');
+  sideLabel.textContent = p.isBad ? 'Efectos Secundarios' : 'Efecto Secundario';
+  sideLabel.className = `font-label text-[10px] uppercase tracking-widest font-semibold ${p.isPerfect ? 'perfect-side-label' : 'text-error'}`;
 
   const sideEl = document.getElementById("potion-side-effect");
   sideEl.textContent = p.isPerfect ? p.sideEffect : formatCustomText(p.sideEffect);
   sideEl.className = p.isPerfect
-    ? "text-base italic perfect-side"
+    ? "text-on-surface text-base italic"
     : "text-on-surface-variant text-base italic";
 
   let side2El = document.getElementById('potion-side-effect-2');
@@ -576,45 +602,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
 
-  // Feedback / suggestion box
-  const feedbackOverlay = document.getElementById('feedback-overlay');
-  const feedbackText    = document.getElementById('feedback-text');
-  const feedbackStatus  = document.getElementById('feedback-status');
-
-  const openFeedback  = () => feedbackOverlay.classList.replace('hidden', 'flex');
-  const closeFeedback = () => {
-    feedbackOverlay.classList.replace('flex', 'hidden');
-    feedbackText.value = '';
-    feedbackStatus.classList.add('hidden');
-  };
-
-  document.getElementById('feedback-btn').addEventListener('click', openFeedback);
-  document.getElementById('feedback-close').addEventListener('click', closeFeedback);
-  feedbackOverlay.addEventListener('click', (e) => { if (e.target === feedbackOverlay) closeFeedback(); });
-
-  document.getElementById('feedback-submit').addEventListener('click', async () => {
-    const message = feedbackText.value.trim();
-    if (!message) return;
-
-    const submitBtn = document.getElementById('feedback-submit');
-    submitBtn.disabled = true;
-
-    const session = await authGetSession();
-    const { error } = await AUTH_CLIENT.from('suggestions').insert({
-      message,
-      user_id: session?.user?.id ?? null,
-      email:   session?.user?.email ?? null,
-    });
-
-    feedbackStatus.classList.remove('hidden');
-    if (error) {
-      feedbackStatus.textContent = 'Error al enviar. Inténtalo de nuevo.';
-      feedbackStatus.className = 'font-label text-[11px] text-center text-error';
-      submitBtn.disabled = false;
-    } else {
-      feedbackStatus.textContent = '¡Gracias! Tu mensaje ha llegado.';
-      feedbackStatus.className = 'font-label text-[11px] text-center text-primary';
-      setTimeout(closeFeedback, 1500);
-    }
-  });
 });

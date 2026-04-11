@@ -104,7 +104,6 @@ async function loadMarketplace() {
 
   _profiles = (profilesRes.data ?? [])
     .filter(p => (textCountMap[p.user_id] ?? 0) > 0)
-    .filter(p => !_session || p.user_id !== _session.user.id)
     .map(p => ({ ...p, textCount: textCountMap[p.user_id] ?? 0 }))
     .sort((a, b) => a.alias.localeCompare(b.alias));
 
@@ -139,10 +138,13 @@ function renderMarketplace() {
   }
 
   list.innerHTML = filtered.map((p, i) => {
+    const isSelf        = _session && p.user_id === _session.user.id;
     const isFollowing   = _myFollowIds.has(p.user_id);
-    const followControl = _session
-      ? `<button class="${followBtnClass(isFollowing)}" data-uid="${escapeHtml(p.user_id)}" data-following="${isFollowing ? "1" : "0"}">${isFollowing ? "Siguiendo" : "Seguir"}</button>`
-      : `<a href="login.html" class="shrink-0 font-label text-[9px] uppercase tracking-widest text-on-surface-variant/30 border border-outline-variant/20 rounded-lg px-2.5 py-1 hover:text-primary hover:border-primary/30 transition-colors">Seguir</a>`;
+    const followControl = isSelf
+      ? `<span class="shrink-0 font-label text-[9px] uppercase tracking-widest text-on-surface-variant/25 border border-outline-variant/10 rounded-lg px-2.5 py-1">Tú</span>`
+      : _session
+        ? `<button class="${followBtnClass(isFollowing)}" data-uid="${escapeHtml(p.user_id)}" data-following="${isFollowing ? "1" : "0"}">${isFollowing ? "Siguiendo" : "Seguir"}</button>`
+        : `<a href="login.html" class="shrink-0 font-label text-[9px] uppercase tracking-widest text-on-surface-variant/30 border border-outline-variant/20 rounded-lg px-2.5 py-1 hover:text-primary hover:border-primary/30 transition-colors">Seguir</a>`;
 
     return `
       <div class="border-b border-outline-variant/10 last:border-0" data-uid="${escapeHtml(p.user_id)}">
