@@ -27,10 +27,12 @@ async function loadCustomTexts() {
 // =====================
 const CHANGELOG_VERSION = '2026-04-11';
 const CHANGELOG_ITEMS = [
-  'Animación del frasco: el líquido interior se mueve con un oleaje continuo.',
-  'Botones de Mi Taller: alias aleatorio con icono de dado 3D; botones solo-icono sin texto.',
-  'Onboarding: los visitantes sin sesión ven un modal de bienvenida la primera vez que entran.',
+  'Añadir texto en Mi Taller: el formulario para contribuir textos personalizados se ha movido a Mi Taller, justo debajo del alias.',
+  'Reorganizar guardadas: la lista de pociones guardadas desaparece de Mi Taller y se mantiene solo en la página principal.',
+  'Rediseño visual: modificación de varios iconos y aspectos visuales.',
+  'Randomizar alias: nuevo botón de dado para cambiar tu nombre entre las diferentes opciones.',
   'Iniciar sesión con Google: nuevo botón en la pantalla de acceso para entrar con tu cuenta de Google.',
+  'Corregir errores: corrección de bugs y errores internos varios.',
 ];
 
 // =====================
