@@ -15,11 +15,14 @@
 
 ## v2026-04-11 — Animaciones y funcionalidades
 
-- **Añadir texto en Mi Taller**: el formulario para contribuir textos personalizados se ha movido a Mi Taller, justo debajo del alias.
+- **Textos personalizados**: el formulario para contribuir textos personalizados se ha movido a Mi Taller, justo debajo del alias. Además ahora podrás decidir si tus textos o los textos bases aparecen o no en las generaciones.  
 - **Reorganizar lista de guardadas**: Se elimina la lista de guardads de Mi taller, se mantiene solo en la página principal y se podrá acceder sin generar poción previamente.
+-**Estoy en la Biblioteca**: Ahora te verás en la biblioteca tal y como el resto lo hará.
 - **Rediseño visual**: Modificaión de varios iconos y aspectos visuales.
 - **Randomizar alias**: Nuevo botón para cambiar tu nombre por defecto entre las diferentes opciones.
 - **Iniciar sesión con Google**: nuevo botón en la pantalla de acceso para entrar directamente con tu cuenta de Google.
 - **Corregir errores**: Corrección de bugs y errores internos varios.
+
+
 
 <!-- Seguir añadiendo cambios aquí antes del push -->

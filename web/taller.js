@@ -209,6 +209,10 @@ function updateCharCounter() {
 }
 
 function initCustomTextForm() {
+  const submitBtn = document.getElementById('custom-text-submit');
+  if (submitBtn.dataset.formInit) return;
+  submitBtn.dataset.formInit = '1';
+
   updateCustomTextPlaceholder();
   updateCharCounter();
 
@@ -219,14 +223,13 @@ function initCustomTextForm() {
 
   document.getElementById('custom-text-input').addEventListener('input', updateCharCounter);
 
-  document.getElementById('custom-text-submit').addEventListener('click', async () => {
+  submitBtn.addEventListener('click', async () => {
     const session = await authGetSession();
     if (!session) return;
 
     const category  = document.getElementById('custom-category').value;
     const rawText   = document.getElementById('custom-text-input').value;
     const feedback  = document.getElementById('custom-text-feedback');
-    const submitBtn = document.getElementById('custom-text-submit');
 
     if (!rawText.trim()) return;
 
@@ -244,25 +247,27 @@ function initCustomTextForm() {
     feedback.textContent = 'Guardando...';
     feedback.className = 'font-label text-[11px] text-center text-on-surface-variant';
 
-    const { data, error } = await AUTH_CLIENT.from('custom_texts')
-      .insert({ category, text, user_id: _userId })
-      .select('id, category, text')
-      .single();
+    try {
+      const { data, error } = await AUTH_CLIENT.from('custom_texts')
+        .insert({ category, text, user_id: _userId })
+        .select('id, category, text')
+        .single();
 
-    if (!error && data) {
-      _allTexts.push(data);
-      buildTextFilter();
-      renderTexts(document.getElementById('texts-category').value);
-      document.getElementById('custom-text-input').value = '';
-      feedback.textContent = '¡Texto añadido!';
-      feedback.className = 'font-label text-[11px] text-center text-primary';
-    } else {
-      feedback.textContent = 'Error al guardar. Inténtalo de nuevo.';
-      feedback.className = 'font-label text-[11px] text-center text-error';
+      if (!error && data) {
+        _allTexts.push(data);
+        buildTextFilter();
+        renderTexts(document.getElementById('texts-category').value);
+        document.getElementById('custom-text-input').value = '';
+        feedback.textContent = '¡Texto añadido!';
+        feedback.className = 'font-label text-[11px] text-center text-primary';
+      } else {
+        feedback.textContent = 'Error al guardar. Inténtalo de nuevo.';
+        feedback.className = 'font-label text-[11px] text-center text-error';
+      }
+    } finally {
+      submitBtn.disabled = false;
+      setTimeout(() => { feedback.textContent = ''; }, 3000);
     }
-
-    submitBtn.disabled = false;
-    setTimeout(() => { feedback.textContent = ''; }, 3000);
   });
 }
 
@@ -612,4 +617,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const session = await authGetSession();
   await init(session);
+
+  initTextToggle('base-texts-btn', 'minerva_use_base_texts');
+  initTextToggle('own-texts-btn',  'minerva_use_own_texts');
 });
+
+function initTextToggle(btnId, storageKey) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+
+  function render(active) {
+    btn.dataset.active = active ? '1' : '0';
+    btn.className = `shrink-0 flex items-center gap-1 font-label text-[9px] uppercase tracking-widest border rounded-lg px-2 py-1 transition-colors ${active ? 'text-primary border-primary/30' : 'text-on-surface-variant/30 border-outline-variant/20'}`;
+    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${active ? 'toggle_on' : 'toggle_off'}</span>${active ? 'Activo' : 'Inactivo'}`;
+  }
+
+  render(localStorage.getItem(storageKey) !== 'false');
+
+  btn.addEventListener('click', () => {
+    const next = btn.dataset.active !== '1';
+    localStorage.setItem(storageKey, next ? 'true' : 'false');
+    render(next);
+  });
+}
