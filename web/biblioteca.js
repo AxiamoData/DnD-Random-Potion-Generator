@@ -33,21 +33,45 @@ function formatText(text) {
 
 // ── Auth zone ──────────────────────────────────────────────────────────────────
 
+async function fetchAlias(userId) {
+  try {
+    const { data } = await AUTH_CLIENT.from('profiles')
+      .select('alias')
+      .eq('user_id', userId)
+      .maybeSingle();
+    return data?.alias ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function renderAuthZone(session) {
   const zone = document.getElementById("auth-zone");
   if (!zone) return;
   if (session) {
+    const initial = session.user.email[0].toUpperCase();
     zone.innerHTML = `
-      <span class="font-label text-[10px] text-on-surface-variant hidden sm:block truncate max-w-[130px]">${escapeHtml(session.user.email)}</span>
-      <button id="signout-btn" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50 hover:text-error transition-colors px-2 py-1 flex items-center gap-1">
-        <span class="material-symbols-outlined" style="font-size:14px">logout</span>Salir
-      </button>
+      <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-1.5 rounded-lg px-2 py-1 bg-surface-container border border-outline-variant/20">
+          <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+            <span class="font-label text-[9px] font-bold text-on-primary">${initial}</span>
+          </div>
+          <span id="auth-alias" class="font-label text-[11px] text-on-surface-variant/80 hidden sm:block truncate max-w-[100px]"></span>
+        </div>
+        <button id="signout-btn" class="p-1.5 rounded-lg text-on-surface-variant/50 hover:text-error hover:bg-error/10 transition-colors flex items-center" aria-label="Cerrar sesión">
+          <span class="material-symbols-outlined" style="font-size:16px">logout</span>
+        </button>
+      </div>
     `;
     document.getElementById("signout-btn").addEventListener("click", authSignOut);
+    fetchAlias(session.user.id).then(alias => {
+      const el = document.getElementById("auth-alias");
+      if (el && alias) el.textContent = alias;
+    });
   } else {
     zone.innerHTML = `
-      <a href="login.html" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50 hover:text-primary transition-colors flex items-center gap-1">
-        <span class="material-symbols-outlined" style="font-size:14px">login</span>Iniciar sesión
+      <a href="login.html" class="flex items-center gap-1.5 font-label text-[11px] font-medium uppercase tracking-widest text-primary border border-primary/40 rounded-lg px-3 py-1.5 hover:bg-primary/10 active:bg-primary/20 transition-colors">
+        <span class="material-symbols-outlined" style="font-size:14px">login</span>Entrar
       </a>
     `;
   }

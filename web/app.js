@@ -25,11 +25,11 @@ async function loadCustomTexts() {
 // =====================
 // Changelog
 // =====================
-const CHANGELOG_VERSION = '2026-04-08';
+const CHANGELOG_VERSION = '2026-04-11';
 const CHANGELOG_ITEMS = [
-  'Nuevo botón para copiar la poción generada como Markdown, sin necesidad de guardarla primero.',
-  'Recuperación de contraseña: enlace "¿Olvidaste tu contraseña?" en la pantalla de acceso.',
-  'Buzón de sugerencias: botón flotante para enviar comentarios o ideas directamente desde la app.',
+  'Animación del frasco: el líquido interior se mueve con un oleaje continuo.',
+  'Botones de Mi Taller: alias aleatorio con icono de dado 3D; botones solo-icono sin texto.',
+  'Onboarding: los visitantes sin sesión ven un modal de bienvenida la primera vez que entran.',
 ];
 
 // =====================
@@ -82,6 +82,13 @@ function generatePotion() {
     isPerfect,
     isBad,
   };
+}
+
+function formatCustomText(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return trimmed;
+  const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  return capitalized.endsWith('.') ? capitalized : capitalized + '.';
 }
 
 function renderPotion(p) {
@@ -141,7 +148,6 @@ function renderPotion(p) {
 // Saved Slots (auth-aware, in-memory cache)
 // =====================
 const SLOTS_KEY = 'minerva_saved_potions';
-const SLOTS_MIGRATED_KEY = 'minerva_slots_migrated';
 const NUM_SLOTS = 10;
 let _slots = Array(NUM_SLOTS).fill(null);
 
@@ -166,6 +172,21 @@ async function refreshSlots() {
     _slots = getLocalSlots();
   }
   renderSlots();
+  updateSaveFullState();
+}
+
+function updateSaveFullState() {
+  const btn = document.getElementById('save-btn');
+  if (!btn || btn.disabled) return;
+  const full = _slots.every(s => s !== null);
+  btn.title = full
+    ? 'Ranuras llenas — borra una poción para guardar más'
+    : 'Guardar poción en ranura';
+  const icon = btn.querySelector('.material-symbols-outlined');
+  if (icon && full) {
+    icon.textContent = 'inventory';
+    icon.style.fontVariationSettings = '';
+  }
 }
 
 function setSaveBtnIcon(saved) {
@@ -178,16 +199,25 @@ async function savePotion() {
   if (!window._lastPotion) return;
   const idx = _slots.findIndex(s => s === null);
   if (idx === -1) {
-    showSavePopup(-1, null);
+    showSavePopup(-1, null, 4000);
     return;
   }
 
   const session = await authGetSession();
   if (session && AUTH_CLIENT) {
-    await AUTH_CLIENT.from('saved_potions').upsert(
-      { user_id: session.user.id, slot_index: idx, potion: window._lastPotion },
-      { onConflict: 'user_id,slot_index' }
-    );
+    try {
+      const { error } = await AUTH_CLIENT.from('saved_potions').upsert(
+        { user_id: session.user.id, slot_index: idx, potion: window._lastPotion },
+        { onConflict: 'user_id,slot_index' }
+      );
+      if (error) throw error;
+    } catch {
+      showSavePopup(-1, null, 4000);
+      document.getElementById('save-popup-icon').textContent = 'error';
+      document.getElementById('save-popup-msg').textContent = 'Error al guardar';
+      document.getElementById('save-popup-sub').textContent = 'Comprueba tu conexión e inténtalo de nuevo.';
+      return;
+    }
   } else {
     const local = getLocalSlots();
     local[idx] = window._lastPotion;
@@ -278,18 +308,6 @@ async function deletePotion(idx) {
   await refreshSlots();
 }
 
-async function migrateLocalSlots(userId) {
-  if (!AUTH_CLIENT) return;
-  if (localStorage.getItem(SLOTS_MIGRATED_KEY)) return;
-  const local = getLocalSlots();
-  const rows = local
-    .map((potion, slot_index) => potion ? { user_id: userId, slot_index, potion } : null)
-    .filter(Boolean);
-  if (rows.length > 0) {
-    await AUTH_CLIENT.from('saved_potions').upsert(rows, { onConflict: 'user_id,slot_index' });
-  }
-  localStorage.setItem(SLOTS_MIGRATED_KEY, '1');
-}
 
 function renderSlots() {
   for (let i = 0; i < NUM_SLOTS; i++) {
@@ -348,7 +366,7 @@ function initSlots() {
   // NOTE: refreshSlots() is called separately after initSlots()
 }
 
-function showSavePopup(idx, potion) {
+function showSavePopup(idx, potion, duration = 2200) {
   const box  = document.getElementById('save-popup-box');
   const icon = document.getElementById('save-popup-icon');
   const msg  = document.getElementById('save-popup-msg');
@@ -371,27 +389,51 @@ function showSavePopup(idx, potion) {
   window._popupTimer = setTimeout(() => {
     box.classList.add('opacity-0', 'scale-95');
     box.classList.remove('opacity-100', 'scale-100');
-  }, 2200);
+  }, duration);
 }
 
 // =====================
 // Auth UI
 // =====================
+async function fetchAlias(userId) {
+  try {
+    const { data } = await AUTH_CLIENT.from('profiles')
+      .select('alias')
+      .eq('user_id', userId)
+      .maybeSingle();
+    return data?.alias ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function renderAuthZone(session) {
   const zone = document.getElementById('auth-zone');
   if (!zone) return;
   if (session) {
+    const initial = session.user.email[0].toUpperCase();
     zone.innerHTML = `
-      <span class="font-label text-[10px] text-on-surface-variant hidden sm:block truncate max-w-[130px]">${escapeHtml(session.user.email)}</span>
-      <button id="signout-btn" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50 hover:text-error transition-colors px-2 py-1 flex items-center gap-1">
-        <span class="material-symbols-outlined" style="font-size:14px">logout</span>Salir
-      </button>
+      <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-1.5 rounded-lg px-2 py-1 bg-surface-container border border-outline-variant/20">
+          <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+            <span class="font-label text-[9px] font-bold text-on-primary">${initial}</span>
+          </div>
+          <span id="auth-alias" class="font-label text-[11px] text-on-surface-variant/80 hidden sm:block truncate max-w-[100px]"></span>
+        </div>
+        <button id="signout-btn" class="p-1.5 rounded-lg text-on-surface-variant/50 hover:text-error hover:bg-error/10 transition-colors flex items-center" aria-label="Cerrar sesión">
+          <span class="material-symbols-outlined" style="font-size:16px">logout</span>
+        </button>
+      </div>
     `;
     document.getElementById('signout-btn').addEventListener('click', authSignOut);
+    fetchAlias(session.user.id).then(alias => {
+      const el = document.getElementById('auth-alias');
+      if (el && alias) el.textContent = alias;
+    });
   } else {
     zone.innerHTML = `
-      <a href="login.html" class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50 hover:text-primary transition-colors flex items-center gap-1">
-        <span class="material-symbols-outlined" style="font-size:14px">login</span>Iniciar sesión
+      <a href="login.html" class="flex items-center gap-1.5 font-label text-[11px] font-medium uppercase tracking-widest text-primary border border-primary/40 rounded-lg px-3 py-1.5 hover:bg-primary/10 active:bg-primary/20 transition-colors">
+        <span class="material-symbols-outlined" style="font-size:14px">login</span>Entrar
       </a>
     `;
   }
@@ -400,23 +442,47 @@ function renderAuthZone(session) {
 // =====================
 // Init
 // =====================
+function parseOnboardingMd(md) {
+  return md.split('\n').map(line => {
+    if (line.startsWith('# '))
+      return `<h2 class="font-headline text-primary text-lg leading-snug mb-3">${line.slice(2)}</h2>`;
+    if (line.startsWith('## '))
+      return `<p class="font-label text-[10px] uppercase tracking-widest text-primary/80 mt-6 mb-3">${line.slice(3)}</p>`;
+    if (line.startsWith('- ')) {
+      const t = line.slice(2).replace(/\*\*(.+?)\*\*/g, '<strong class="text-on-surface">$1</strong>');
+      return `<div class="flex gap-2 text-sm text-on-surface-variant/80 leading-relaxed"><span class="text-primary/50 shrink-0 mt-0.5">·</span><span>${t}</span></div>`;
+    }
+    if (line.trim())
+      return `<p class="text-sm text-on-surface-variant/70 leading-relaxed">${line.trim()}</p>`;
+    return '';
+  }).join('');
+}
+
+async function showOnboarding() {
+  const overlay = document.getElementById('onboarding-overlay');
+  if (!overlay) return;
+  try {
+    const res  = await fetch('onboarding.md');
+    const text = await res.text();
+    document.getElementById('onboarding-content').innerHTML = parseOnboardingMd(text);
+  } catch {
+    return;
+  }
+  overlay.classList.remove('hidden');
+  overlay.classList.add('flex');
+
+  const close = () => {
+    localStorage.setItem('minerva_onboarding_seen', '1');
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+  };
+  document.getElementById('onboarding-close').addEventListener('click', close);
+  document.getElementById('onboarding-cta').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const WHATS_NEW_KEY = 'minerva_whats_new_seen';
-  if (localStorage.getItem(WHATS_NEW_KEY) !== CHANGELOG_VERSION) {
-    const overlay = document.getElementById('whats-new-overlay');
-    const content = document.getElementById('whats-new-content');
-    content.innerHTML = CHANGELOG_ITEMS.map(item => `<p>• ${item}</p>`).join('');
-    overlay.classList.remove('hidden');
-    overlay.classList.add('flex');
-
-    const closeWhatsNew = () => {
-      localStorage.setItem(WHATS_NEW_KEY, CHANGELOG_VERSION);
-      overlay.classList.add('hidden');
-      overlay.classList.remove('flex');
-    };
-    document.getElementById('whats-new-close').addEventListener('click', closeWhatsNew);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeWhatsNew(); });
-  }
 
   initSlots();
 
@@ -425,11 +491,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const session = await authGetSession();
     renderAuthZone(session);
-    if (session) await migrateLocalSlots(session.user.id);
+
+    if (session) {
+      if (localStorage.getItem(WHATS_NEW_KEY) !== CHANGELOG_VERSION) {
+        const overlay = document.getElementById('whats-new-overlay');
+        const content = document.getElementById('whats-new-content');
+        content.innerHTML = CHANGELOG_ITEMS.map(item => `<p>• ${item}</p>`).join('');
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+
+        const closeWhatsNew = () => {
+          localStorage.setItem(WHATS_NEW_KEY, CHANGELOG_VERSION);
+          overlay.classList.add('hidden');
+          overlay.classList.remove('flex');
+        };
+        document.getElementById('whats-new-close').addEventListener('click', closeWhatsNew);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeWhatsNew(); });
+      }
+    } else {
+      if (!localStorage.getItem('minerva_onboarding_seen')) showOnboarding();
+    }
 
     authOnChange(async (session) => {
       renderAuthZone(session);
-      if (session) await migrateLocalSlots(session.user.id);
       await refreshSlots();
     });
   }
@@ -443,6 +527,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById('save-btn').disabled = false;
     document.getElementById('copy-btn').disabled = false;
     setSaveBtnIcon(false);
+    const btn = document.getElementById('generate-btn');
+    btn.classList.remove('brewing');
+    void btn.offsetWidth;
+    btn.classList.add('brewing');
+    btn.addEventListener('animationend', () => btn.classList.remove('brewing'), { once: true });
   });
 
   document.getElementById("save-btn").addEventListener("click", savePotion);

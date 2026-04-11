@@ -15,7 +15,20 @@
 
 ## v2026-04-09 — Mejoras visuales
 
-- **Icono de guardado**: el botón de guardar ahora muestra el icono relleno mientras se está viendo una poción guardada, y vuelve al icono normal al generar una nueva.
 - **Añadir texto en Mi Taller**: el formulario para contribuir textos personalizados se ha movido a Mi Taller, justo debajo del alias.
+- **Reorganizar lista de guardadas**: Se elimina la lista de guardads de Mi taller, se mantiene solo en la página principal y se podrá acceder sin generar poción previamente.
+- **Rediseño visual**: Modificaión de varios iconos y aspectos visuales.
+- **Randomizar alias**: Nuevo botón para cambiar tu nombre por defecto entre las diferentes opciones.
+- **Corregir errores**: Corrección de bugs y errores internos varios. 
+
+
+
+---
+
+## v2026-04-11 — Animaciones y onboarding
+
+- **Animación del frasco**: el líquido interior del botón generador se mueve con un oleaje continuo.
+- **Botones de Mi Taller**: el botón de alias aleatorio tiene ahora un icono de dado 3D; ambos botones son solo-icono sin texto.
+- **Onboarding**: los visitantes sin sesión ven un modal de bienvenida la primera vez que entran, con texto editable en `onboarding.md`.
 
 <!-- Seguir añadiendo cambios aquí antes del push -->
