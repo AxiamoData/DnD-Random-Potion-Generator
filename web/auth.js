@@ -36,3 +36,13 @@ function authOnChange(cb) {
   if (!AUTH_CLIENT) return;
   AUTH_CLIENT.auth.onAuthStateChange((event, session) => cb(session, event));
 }
+
+async function authSignInWithGoogle() {
+  const { error } = await AUTH_CLIENT.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/login.html',
+    },
+  });
+  if (error) console.error('Google OAuth error:', error.message);
+}
