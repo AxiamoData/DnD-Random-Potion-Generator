@@ -227,13 +227,6 @@ function setSaveBtnIcon(saved) {
 async function savePotion() {
   if (!window._lastPotion) return;
 
-  const currentJSON = JSON.stringify(window._lastPotion);
-  const existingIdx = _slots.findIndex(s => s !== null && JSON.stringify(s) === currentJSON);
-  if (existingIdx !== -1) {
-    showSavePopup(-2, existingIdx, 3000);
-    return;
-  }
-
   const idx = _slots.findIndex(s => s === null);
   if (idx === -1) {
     showSavePopup(-1, null, 4000);
@@ -264,13 +257,14 @@ async function savePotion() {
   await refreshSlots();
   showSavePopup(idx, window._lastPotion);
   setSaveBtnIcon(true);
+  document.getElementById('save-btn').disabled = true;
 }
 
 function loadPotion(idx) {
   if (!_slots[idx]) return;
   window._lastPotion = _slots[idx];
   renderPotion(_slots[idx]);
-  document.getElementById('save-btn').disabled = false;
+  document.getElementById('save-btn').disabled = true;
   document.getElementById('copy-btn').disabled = false;
   setSaveBtnIcon(true);
 }
@@ -413,10 +407,6 @@ function showSavePopup(idx, potion, duration = 2200) {
     icon.textContent = 'inventory';
     msg.textContent  = '¡Ranuras llenas!';
     sub.textContent  = 'Borra una poción para guardar más.';
-  } else if (idx === -2) {
-    icon.textContent = 'bookmark_added';
-    msg.textContent  = 'Ya está guardada';
-    sub.textContent  = `En la Ranura ${potion + 1}`;
   } else {
     icon.textContent = 'bookmark_added';
     msg.textContent  = `¡Guardada en Ranura ${idx + 1}!`;
