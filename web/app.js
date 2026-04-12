@@ -227,6 +227,9 @@ function setSaveBtnIcon(saved) {
 async function savePotion() {
   if (!window._lastPotion) return;
 
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.disabled = true;
+
   const idx = _slots.findIndex(s => s === null);
   if (idx === -1) {
     showSavePopup(-1, null, 4000);
