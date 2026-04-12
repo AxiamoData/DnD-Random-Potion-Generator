@@ -16,6 +16,19 @@ paths:
 
 # Frontend
 
+## Required Reading for Design Work
+
+Before building or modifying UI, read the appropriate skill file:
+
+- **App UI, pages, flows** (this project falls here) → read `.claude/skills/interface-design/SKILL.md`
+  - Covers: intent-first thinking, token architecture, surface elevation, craft principles, domain exploration
+  - Deep dives in `.claude/skills/interface-design/references/`
+
+- **Creative components, standalone elements, experimental UI** → read `.claude/skills/frontend-design/SKILL.md`
+  - Covers: bold aesthetics, typography choices, motion, spatial composition, visual differentiation
+
+**This project context:** Dark-mode app, Tailwind CDN, glassmorphism aesthetic, design tokens defined inline in `index.html` tailwind config. No bundler. Vanilla JS.
+
 ## Design Tokens
 
 Before writing frontend code, find the project's existing tokens file (`tokens.css`, `variables.css`, `theme.ts`, `tailwind.config.*`, `_variables.scss`). If none exists, create one. Never hardcode raw values in components.

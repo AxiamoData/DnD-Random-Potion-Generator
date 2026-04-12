@@ -179,6 +179,7 @@ function renderPotion(p) {
 const SLOTS_KEY = 'minerva_saved_potions';
 const NUM_SLOTS = 10;
 let _slots = Array(NUM_SLOTS).fill(null);
+let _slotsLoaded = false;
 
 function getLocalSlots() {
   try {
@@ -200,6 +201,7 @@ async function refreshSlots() {
   } else {
     _slots = getLocalSlots();
   }
+  _slotsLoaded = true;
   renderSlots();
   updateSaveFullState();
 }
@@ -245,10 +247,7 @@ async function savePotion() {
       );
       if (error) throw error;
     } catch {
-      showSavePopup(-1, null, 4000);
-      document.getElementById('save-popup-icon').textContent = 'error';
-      document.getElementById('save-popup-msg').textContent = 'Error al guardar';
-      document.getElementById('save-popup-sub').textContent = 'Comprueba tu conexión e inténtalo de nuevo.';
+      showSavePopup(null, null, 4000, true);
       return;
     }
   } else {
@@ -344,6 +343,7 @@ async function deletePotion(idx) {
 
 
 function renderSlots() {
+  let allEmpty = true;
   for (let i = 0; i < NUM_SLOTS; i++) {
     const btn = document.getElementById(`slot-btn-${i}`);
     const del = document.getElementById(`slot-del-${i}`);
@@ -352,8 +352,10 @@ function renderSlots() {
 
     const exp = document.getElementById(`slot-exp-${i}`);
     if (p) {
+      allEmpty = false;
       const effectLabel = p.mainEffect.split('.')[0];
       btn.className = 'slot-tile w-full flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 rounded-lg border border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95 min-h-[72px] cursor-pointer';
+      btn.setAttribute('aria-label', `Ranura ${i + 1}: ${effectLabel}`);
       btn.innerHTML = `
         <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">bookmark_added</span>
         <span class="font-label text-[10px] uppercase tracking-wide opacity-60">${i + 1}</span>
@@ -363,6 +365,7 @@ function renderSlots() {
       exp.style.display = '';
     } else {
       btn.className = 'slot-tile w-full flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-lg border border-outline-variant/15 text-on-surface-variant/30 hover:border-outline-variant/40 hover:text-on-surface-variant/50 transition-all active:scale-95 min-h-[72px] cursor-pointer';
+      btn.setAttribute('aria-label', `Ranura ${i + 1}: vacía`);
       btn.innerHTML = `
         <span class="material-symbols-outlined text-xl">bookmark</span>
         <span class="font-label text-[10px] uppercase tracking-wide">${i + 1}</span>
@@ -370,6 +373,13 @@ function renderSlots() {
       del.style.display = 'none';
       exp.style.display = 'none';
     }
+  }
+
+  if (_slotsLoaded) {
+    const emptyState = document.getElementById('slots-empty');
+    const grid = document.getElementById('slots-grid');
+    if (emptyState) emptyState.style.display = allEmpty ? 'flex' : 'none';
+    if (grid) grid.style.display = allEmpty ? 'none' : '';
   }
 }
 
@@ -379,7 +389,7 @@ function initSlots() {
   for (let i = 0; i < NUM_SLOTS; i++) {
     html += `
       <div class="relative flex flex-col gap-1">
-        <button id="slot-btn-${i}" data-slot="${i}"></button>
+        <button id="slot-btn-${i}" data-slot="${i}" class="slot-tile w-full rounded-lg border border-outline-variant/10 bg-surface-container-high/40 animate-pulse min-h-[72px]" aria-label="Ranura ${i + 1}: cargando"></button>
         <button id="slot-del-${i}" data-slot="${i}" style="display:none" class="absolute -top-2 -right-2 z-10 w-5 h-5 rounded-full bg-error flex items-center justify-center hover:bg-error/70 active:scale-90 transition-all">
           <span class="material-symbols-outlined text-on-error" style="font-size:12px;line-height:1">close</span>
         </button>
@@ -400,18 +410,28 @@ function initSlots() {
   // NOTE: refreshSlots() is called separately after initSlots()
 }
 
-function showSavePopup(idx, potion, duration = 2200) {
+function showSavePopup(idx, potion, duration = 2200, isError = false) {
   const box  = document.getElementById('save-popup-box');
   const icon = document.getElementById('save-popup-icon');
   const msg  = document.getElementById('save-popup-msg');
   const sub  = document.getElementById('save-popup-sub');
 
-  if (idx === -1) {
+  const color = isError ? 'text-error' : 'text-primary';
+  icon.className = `material-symbols-outlined ${color} text-4xl block mb-2`;
+  msg.className  = `font-headline ${color} text-lg leading-snug`;
+  icon.style.fontVariationSettings = '';
+
+  if (isError) {
+    icon.textContent = 'error_outline';
+    msg.textContent  = 'Error al guardar';
+    sub.textContent  = 'Comprueba tu conexión e inténtalo de nuevo.';
+  } else if (idx === -1) {
     icon.textContent = 'inventory';
     msg.textContent  = '¡Ranuras llenas!';
     sub.textContent  = 'Borra una poción para guardar más.';
   } else {
     icon.textContent = 'bookmark_added';
+    icon.style.fontVariationSettings = "'FILL' 1";
     msg.textContent  = `¡Guardada en Ranura ${idx + 1}!`;
     sub.textContent  = potion.mainEffect.split('.')[0];
   }
