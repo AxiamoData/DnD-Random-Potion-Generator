@@ -182,7 +182,7 @@ function renderAuthZone(session) {
 
 function updateCustomTextPlaceholder() {
   const category = document.getElementById('custom-category').value;
-  const examples = window.POTION_DATA?.[category];
+  const examples = POTION_DATA?.[category];
   const input = document.getElementById('custom-text-input');
   if (examples && examples.length > 0) {
     input.placeholder = `Ej: ${randomFrom(examples)}`;
@@ -617,6 +617,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const session = await authGetSession();
   await init(session);
+
+  // Set placeholder independently of auth — initCustomTextForm() may not run
+  // if loadData() fails (e.g. CORS error when testing locally via file://)
+  updateCustomTextPlaceholder();
 
   initTextToggle('base-texts-btn', 'minerva_use_base_texts');
   initTextToggle('own-texts-btn',  'minerva_use_own_texts');
