@@ -1,4 +1,4 @@
-const CACHE = 'minerva-v17';
+const CACHE = 'minerva-v18';
 // Solo assets estáticos — las páginas HTML las gestiona el navegador directamente
 const ASSETS = [
   './app.js',
