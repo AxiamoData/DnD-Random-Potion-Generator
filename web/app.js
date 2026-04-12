@@ -125,7 +125,7 @@ function renderPotion(p) {
 
   document.getElementById("potion-name").textContent = `${p.title} de ${mainTitle}`;
   document.getElementById("potion-subtitle").textContent =
-    `${p.title} · ${POTENCY_RARITY[p.potency] ?? "Artefacto"}`;
+    POTENCY_RARITY[p.potency] ?? "Artefacto";
 
   document.getElementById("potion-main-effect").textContent = mainEffect;
 
