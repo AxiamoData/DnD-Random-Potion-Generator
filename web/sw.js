@@ -1,7 +1,7 @@
-const CACHE = 'minerva-v18';
+const CACHE = 'minerva-v19';
 // Solo assets estáticos — las páginas HTML las gestiona el navegador directamente
+// app.js se sirve siempre desde la red para que los deploys sean inmediatos
 const ASSETS = [
-  './app.js',
   './auth.js',
   './feedback.js',
   './login.html',
@@ -29,10 +29,11 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Cache-first para assets estáticos propios. Navegaciones y cross-origin van directo a red.
+// Cache-first para assets estáticos propios. Navegaciones, cross-origin y app.js van directo a red.
 self.addEventListener('fetch', e => {
   if (!e.request.url.startsWith(self.location.origin)) return;
   if (e.request.mode === 'navigate') return; // El navegador gestiona las páginas HTML
+  if (e.request.url.includes('/app.js')) return; // Siempre desde la red para deploys inmediatos
 
   e.respondWith(
     caches.match(e.request).then(cached => {
