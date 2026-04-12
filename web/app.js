@@ -125,7 +125,7 @@ function renderPotion(p) {
 
   document.getElementById("potion-name").textContent = `${p.title} de ${mainTitle}`;
   document.getElementById("potion-subtitle").textContent =
-    `${p.title} · ${POTENCY_RARITY[p.potency] ?? "Artefacto"}`;
+    POTENCY_RARITY[p.potency] ?? "Artefacto";
 
   document.getElementById("potion-main-effect").textContent = mainEffect;
 
@@ -226,6 +226,10 @@ function setSaveBtnIcon(saved) {
 
 async function savePotion() {
   if (!window._lastPotion) return;
+
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.disabled = true;
+
   const idx = _slots.findIndex(s => s === null);
   if (idx === -1) {
     showSavePopup(-1, null, 4000);
@@ -256,13 +260,14 @@ async function savePotion() {
   await refreshSlots();
   showSavePopup(idx, window._lastPotion);
   setSaveBtnIcon(true);
+  document.getElementById('save-btn').disabled = true;
 }
 
 function loadPotion(idx) {
   if (!_slots[idx]) return;
   window._lastPotion = _slots[idx];
   renderPotion(_slots[idx]);
-  document.getElementById('save-btn').disabled = false;
+  document.getElementById('save-btn').disabled = true;
   document.getElementById('copy-btn').disabled = false;
   setSaveBtnIcon(true);
 }
